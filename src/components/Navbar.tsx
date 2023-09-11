@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ProfileMenu, SignInButton } from "@/components";
+import { ProfileMenu, SignInButton, ThemeToggle } from "@/components";
 import { getServerSession } from "next-auth";
 
 const Navbar = async () => {
@@ -15,7 +15,9 @@ const Navbar = async () => {
           </p>
         </Link>
 
-        <div className='flex items-center'>
+        <div className='flex items-center gap-3'>
+          <ThemeToggle />
+
           {session ? (
             <ProfileMenu user={session.user} />
           ) : (
