@@ -18,7 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className={cn(inter.className, "min-h-screen antialiased pt-16")}>
+      <body
+        className={cn(
+          inter.className,
+          "min-h-screen bg-slate-50 dark:bg-slate-900 antialiased pt-16"
+        )}
+      >
         <Providers>
           <Navbar />
           {children}
