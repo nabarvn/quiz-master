@@ -2,8 +2,8 @@ import axios from "axios";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthSession } from "@/lib/auth";
 import { QuizConstructorValidator } from "@/lib/validators/quiz";
+import { getAuthSession } from "@/lib/auth";
 
 export async function POST(req: NextRequest, res: NextResponse) {
   try {
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 }
 
-export async function GET(req: Request, res: Response) {
+export async function GET(req: NextRequest, res: NextResponse) {
   try {
     const session = await getAuthSession();
 
