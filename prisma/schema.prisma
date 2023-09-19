@@ -86,7 +86,7 @@ model Question {
   questionType      GameType
   userAnswer        String?
 
-  game Game @relation(fields: [gameId], references: [id])
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
   @@index([gameId])
 }
