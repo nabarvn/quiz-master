@@ -32,15 +32,16 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
         />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className='bg-white' align='end'>
+      <DropdownMenuContent
+        className='bg-white/75 dark:bg-slate-900'
+        align='end'
+      >
         <div className='flex items-center justify-start gap-2 p-2'>
           <div className='flex flex-col space-y-1 leading-none'>
             {user && (
               <>
                 <p className='font-medium'>{user?.name}</p>
-                <p className='w-[200px] truncate text-sm text-zinc-700'>
-                  {user?.email}
-                </p>
+                <p className='w-[200px] truncate text-sm'>{user?.email}</p>
               </>
             )}
           </div>
@@ -49,7 +50,13 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem asChild>
-          <Link href='/'>Surprise me</Link>
+          <Link
+            href='https://github.com/nabarvn/quiz-master'
+            target='_blank'
+            className='cursor-pointer'
+          >
+            Star on Github 🌟
+          </Link>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -63,8 +70,8 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
           }}
           className='cursor-pointer'
         >
+          <LogOut className='h-4 w-4 mr-2' />
           Sign out
-          <LogOut className='h-4 w-4 ml-2' />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
