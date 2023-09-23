@@ -169,7 +169,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
   if (hasEnded) {
     return (
-      <div className='absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2'>
+      <div className='absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 -mt-20'>
         <div className='font-semibold text-white bg-green-700 rounded-md whitespace-nowrap px-4 py-2 mt-2'>
           You Completed in{" "}
           {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
@@ -188,7 +188,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
   return (
     hydrated && (
-      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] mt-5'>
+      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] -mt-10'>
         <div className='flex flex-row justify-between'>
           <div className='flex flex-col'>
             {/* topic */}

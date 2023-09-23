@@ -161,7 +161,7 @@ const MCQ = ({ game }: MCQProps) => {
 
   if (hasEnded) {
     return (
-      <div className='absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2'>
+      <div className='absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 -mt-20'>
         <div className='font-semibold text-white bg-green-500 rounded-md whitespace-nowrap px-4 py-2 mt-2'>
           You Completed in{" "}
           {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
