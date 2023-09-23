@@ -42,7 +42,7 @@ const SignInButton = ({ text }: SignInButtonProps) => {
   ) : (
     <>
       <Button
-        className='hidden md:flex'
+        className='hidden md:flex h-10'
         onClick={signInWithGoogle}
         isLoading={isLoading}
       >
@@ -55,7 +55,7 @@ const SignInButton = ({ text }: SignInButtonProps) => {
         size='sm'
         variant='ghost'
       >
-        <LogIn />
+        <LogIn className='hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100' />
       </Button>
     </>
   );
