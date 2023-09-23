@@ -6,7 +6,7 @@ const Navbar = async () => {
   const session = await getServerSession();
 
   return (
-    <div className='fixed inset-x-0 top-0 bg-white/75 backdrop-blur-sm dark:bg-slate-900 z-[10] h-fit border-b border-slate-300 dark:border-slate-700 shadow-sm py-4'>
+    <div className='fixed inset-x-0 top-0 bg-white/75 backdrop-blur-sm dark:bg-slate-900 z-[10] border-b border-slate-300 dark:border-slate-700 shadow-sm py-4'>
       <div className='flex items-center justify-between h-full max-w-7xl gap-2 mx-auto px-8'>
         {/* logo */}
         <Link href='/' className='active:scale-95 flex gap-2 items-center'>
