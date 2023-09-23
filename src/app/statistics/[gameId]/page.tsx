@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { Metadata } from "next";
 import { cn } from "@/lib/utils";
 import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth";
@@ -12,6 +13,10 @@ import {
   QuestionsList,
   ResultsCard,
 } from "@/components/statistics";
+
+export const metadata: Metadata = {
+  title: "Statistics | Quiz Master",
+};
 
 type StatisticsPageProps = {
   params: {

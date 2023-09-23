@@ -1,7 +1,12 @@
 import { db } from "@/lib/db";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth";
 import { OpenEnded } from "@/components";
+
+export const metadata: Metadata = {
+  title: "Open-Ended Game | Quiz Master",
+};
 
 type OpenEndedQuizPageProps = {
   params: {
@@ -35,7 +40,11 @@ const OpenEndedQuizPage = async ({
     return redirect("/quiz");
   }
 
-  return <OpenEnded game={game} />;
+  return (
+    <main className='relative mx-auto min-h-screen max-w-7xl'>
+      <OpenEnded game={game} />
+    </main>
+  );
 };
 
 export default OpenEndedQuizPage;

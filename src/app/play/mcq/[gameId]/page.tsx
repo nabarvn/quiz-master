@@ -1,7 +1,12 @@
 import { db } from "@/lib/db";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth";
 import { MCQ } from "@/components";
+
+export const metadata: Metadata = {
+  title: "MCQ Game | Quiz Master",
+};
 
 type MCQPageProps = {
   params: {
@@ -33,7 +38,11 @@ const MultipleChoiceQuizPage = async ({ params: { gameId } }: MCQPageProps) => {
     return redirect("/quiz");
   }
 
-  return <MCQ game={game} />;
+  return (
+    <main className='relative mx-auto min-h-screen max-w-7xl'>
+      <MCQ game={game} />
+    </main>
+  );
 };
 
 export default MultipleChoiceQuizPage;
