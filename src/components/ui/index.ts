@@ -7,3 +7,6 @@ export { Card } from "./Card";
 export { Form } from "./Form";
 export { Label } from "./Label";
 export { Separator } from "./Separator";
+export { Table } from "./Table";
+export { Heading } from "./Heading";
+export { Paragraph } from "./Paragraph";
