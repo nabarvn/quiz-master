@@ -47,7 +47,7 @@ const RecentActivity = async ({
         </CardDescription>
       </CardHeader>
 
-      <CardContent className='relative overflow-y-auto h-[205px] md:h-[520px] lg:h-[365px] xl:h-[475px] lg:scrollbar-thin lg:scrollbar-thumb-slate-300 lg:dark:scrollbar-thumb-slate-500 lg:scrollbar-thumb-rounded-sm'>
+      <CardContent className='relative overflow-y-auto h-[205px] md:h-[520px] lg:h-[365px] xl:h-[475px] scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-500 scrollbar-thumb-rounded-sm'>
         {gamesCount !== 0 ? (
           <History games={games} />
         ) : (

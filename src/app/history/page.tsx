@@ -45,7 +45,7 @@ const HistoryPage = async () => {
             </div>
           </CardHeader>
 
-          <CardContent className='relative overflow-y-auto border-2 rounded-sm h-[400px] bg-white dark:bg-slate-950 lg:scrollbar-thin lg:scrollbar-thumb-slate-300 lg:dark:scrollbar-thumb-slate-500 lg:scrollbar-thumb-rounded-sm'>
+          <CardContent className='relative overflow-y-auto border-2 rounded-sm h-[400px] bg-white dark:bg-slate-950 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-500 scrollbar-thumb-rounded-sm'>
             {gamesCount !== 0 ? (
               <History
                 getGames={async () => {
@@ -61,7 +61,7 @@ const HistoryPage = async () => {
                 }}
               />
             ) : (
-              <span className='absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2'>
+              <span className='absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 text-center'>
                 Nothing to display yet.
               </span>
             )}
