@@ -10,7 +10,7 @@ import {
 
 const HotTopics = () => {
   return (
-    <Card className='col-span-4 h-[315px] md:h-[630px] lg:h-[474px] xl:h-[583px]'>
+    <Card className='col-span-4 h-[315px] md:h-[630px] lg:h-[500px] xl:h-[583px]'>
       <CardHeader>
         <CardTitle className='text-xl font-bold'>Hot Topics</CardTitle>
 
