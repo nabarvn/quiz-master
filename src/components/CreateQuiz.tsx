@@ -94,7 +94,7 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
   form.watch();
 
   return (
-    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] md:w-[390px] lg:w-[500px] -mt-6'>
+    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] md:w-[390px] lg:w-[500px] -mt-6 lg:-mt-0 xl:-mt-6'>
       <Card>
         <CardHeader>
           <CardTitle className='text-xl font-bold'>Quiz Constructor</CardTitle>

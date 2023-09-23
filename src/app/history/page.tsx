@@ -29,7 +29,7 @@ const HistoryPage = async () => {
 
   return (
     <main className='relative mx-auto min-h-screen max-w-7xl'>
-      <div className='absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-[340px] md:w-[390px] lg:w-[500px] -mt-14'>
+      <div className='absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 w-[340px] md:w-[390px] lg:w-[500px] -mt-14 lg:-mt-7 xl:-mt-14'>
         <Card className='border-none shadow-none bg-slate-50 dark:bg-slate-900'>
           <CardHeader className='px-0'>
             <div className='flex items-center justify-between'>

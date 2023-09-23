@@ -180,7 +180,7 @@ const MCQ = ({ game }: MCQProps) => {
 
   return (
     hydrated && (
-      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] mt-5'>
+      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] mt-5 lg:mt-10 xl:mt-5'>
         <div className='flex flex-row justify-between'>
           <div className='flex flex-col'>
             {/* topic */}
