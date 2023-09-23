@@ -1,3 +1,4 @@
+import { db } from "@/lib/db";
 import type { Metadata } from "next";
 import { getAuthSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -24,7 +25,9 @@ const DashboardPage = async () => {
   return (
     <main className='mx-auto max-w-7xl p-8'>
       <div className='flex items-center'>
-        <h2 className='text-2xl font-bold tracking-tight mr-2'>Dashboard</h2>
+        <h2 className='text-2xl font-bold tracking-tight mr-2'>
+          Welcome to your quiz dashboard, {session.user.name}! 🔥
+        </h2>
       </div>
 
       <div className='grid gap-4 md:grid-cols-2 mt-4'>
@@ -34,7 +37,27 @@ const DashboardPage = async () => {
 
       <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4'>
         <HotTopics />
-        <RecentActivity />
+
+        <RecentActivity
+          getGames={async () => {
+            return await db.game.findMany({
+              take: 10,
+              where: {
+                userId: session.user.id,
+              },
+              orderBy: {
+                timeStarted: "desc",
+              },
+            });
+          }}
+          getGamesCount={async () => {
+            return await db.game.count({
+              where: {
+                userId: session.user.id,
+              },
+            });
+          }}
+        />
       </div>
     </main>
   );
