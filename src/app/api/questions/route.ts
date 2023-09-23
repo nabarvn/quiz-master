@@ -1,22 +1,9 @@
 import { ZodError } from "zod";
-import { NextRequest, NextResponse } from "next/server";
 import { strictOutput } from "@/lib/gpt";
 import { GetQuestionsValidator } from "@/lib/validators/questions";
-// import { getAuthSession } from "@/lib/auth";
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: Request, res: Response) {
   try {
-    // const session = await getAuthSession();
-
-    // if (!session?.user) {
-    //   return NextResponse.json(
-    //     { error: "You must be logged in to create a quiz game." },
-    //     {
-    //       status: 401,
-    //     }
-    //   );
-    // }
-
     const body = await req.json();
 
     const { topic, type, amount } = GetQuestionsValidator.parse(body);
@@ -25,12 +12,12 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
     if (type === "mcq") {
       questions = await strictOutput(
-        "You are a helpful AI agent that is able to generate mcq questions and answers, the length of each answer should not be more than 15 words, store all questions and answers and options in a JSON array",
+        "You are a helpful AI agent that can generate sets of MCQ questions and answers, with each answer limited to 15 words. Please provide the output in the desired JSON array format.",
         new Array(amount).fill(
-          `You are to generate a random hard mcq question about ${topic}`
+          `You are to generate a random hard MCQ question about ${topic}.`
         ),
         {
-          question: "question",
+          question: "question (do not put quotation marks)",
           answer: "answer with max length of 15 words",
           option1: "option1 with max length of 15 words",
           option2: "option2 with max length of 15 words",
@@ -39,38 +26,33 @@ export async function POST(req: NextRequest, res: NextResponse) {
       );
     } else if (type === "open_ended") {
       questions = await strictOutput(
-        "You are a helpful AI that is able to generate a pair of question and answers, the length of each answer should not be more than 15 words, store all the pairs of questions and answers in a JSON array",
+        "You are a helpful AI agent that can generate pairs of open-ended questions and answers, with each answer limited to 15 words. Please provide the output in the desired JSON array format.",
         new Array(amount).fill(
-          `You are to generate a random hard open-ended question about ${topic}`
+          `You are to generate a random hard open-ended question about ${topic}.`
         ),
         {
-          question: "question",
+          question: "question (do not put quotation marks)",
           answer: "answer with max length of 15 words",
         }
       );
     }
 
-    return NextResponse.json(
-      {
-        questions: questions,
+    return new Response(JSON.stringify({ questions }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
       },
-      {
-        status: 200,
-      }
-    );
+    });
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json(
-        { error: error.issues },
-        {
-          status: 400,
-        }
-      );
+      return new Response(JSON.stringify({ error: error.issues }), {
+        status: 400,
+      });
     } else {
       console.error("elle gpt error", error);
 
-      return NextResponse.json(
-        { error: "An unexpected error occurred." },
+      return new Response(
+        JSON.stringify({ error: "An unexpected error occurred." }),
         {
           status: 500,
         }
