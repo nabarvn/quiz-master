@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Navbar, Providers } from "@/components";
+import { Toaster } from "@/components/ui";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,12 +22,18 @@ export default function RootLayout({
       <body
         className={cn(
           inter.className,
-          "min-h-screen bg-slate-50 dark:bg-slate-900 antialiased pt-16"
+          "bg-slate-50 dark:bg-slate-900 overflow-hidden antialiased pt-20"
         )}
+        style={{ height: "100svh" }}
       >
         <Providers>
           <Navbar />
-          {children}
+
+          <div className='mx-auto h-full overflow-y-auto lg:scrollbar-thin lg:scrollbar-thumb-slate-300 lg:dark:scrollbar-thumb-slate-500 lg:scrollbar-thumb-rounded-sm'>
+            {children}
+          </div>
+
+          <Toaster />
         </Providers>
       </body>
     </html>
