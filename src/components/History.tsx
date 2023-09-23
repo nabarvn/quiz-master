@@ -31,7 +31,7 @@ const History = async ({ games = [], getGames }: HistoryProps) => {
                   href={`/statistics/${game.id}`}
                   className={cn(
                     buttonVariants({ variant: "link" }),
-                    "text-base leading-none p-0"
+                    "text-base underline leading-none p-0"
                   )}
                 >
                   {game.topic}
