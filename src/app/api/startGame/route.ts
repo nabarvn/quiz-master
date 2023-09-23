@@ -25,7 +25,7 @@ export async function POST(req: Request, res: Response) {
 
     const game = await db.game.create({
       data: {
-        topic: topic.toLowerCase(),
+        topic,
         gameType: type,
         userId: session.user.id,
       },

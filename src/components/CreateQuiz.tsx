@@ -45,7 +45,7 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
   const { mutate: getQuestions, isLoading } = useMutation({
     mutationFn: async ({ topic, type, amount }: QuizConstructorInput) => {
       const response = await axios.post("/api/startGame", {
-        topic,
+        topic: topic.toLowerCase(),
         type,
         amount,
       });
