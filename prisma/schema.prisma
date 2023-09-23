@@ -60,9 +60,9 @@ model Game {
   id          String     @id @default(cuid())
   userId      String
   questions   Question[]
-  timeStarted DateTime
+  timeStarted DateTime   @default(now())
   topic       String
-  timeEnded   DateTime?
+  timeEnded   DateTime   @default(now())
   gameType    GameType
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
