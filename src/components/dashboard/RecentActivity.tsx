@@ -51,7 +51,7 @@ const RecentActivity = async ({
         {gamesCount !== 0 ? (
           <History games={games} />
         ) : (
-          <span className='absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2'>
+          <span className='absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 text-center'>
             Nothing to display yet.
           </span>
         )}
