@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { LogIn } from "lucide-react";
 
 type SignInButtonProps = {
-  text: string;
+  text?: string;
 };
 
 const SignInButton = ({ text }: SignInButtonProps) => {
@@ -29,10 +30,34 @@ const SignInButton = ({ text }: SignInButtonProps) => {
     }
   };
 
-  return (
-    <Button onClick={signInWithGoogle} isLoading={isLoading}>
+  return text ? (
+    <Button
+      size='lg'
+      onClick={signInWithGoogle}
+      isLoading={isLoading}
+      className='text-lg w-fit'
+    >
       {text}
     </Button>
+  ) : (
+    <>
+      <Button
+        className='hidden md:flex'
+        onClick={signInWithGoogle}
+        isLoading={isLoading}
+      >
+        Sign In
+      </Button>
+
+      <Button
+        className='flex md:hidden h-10'
+        onClick={signInWithGoogle}
+        size='sm'
+        variant='ghost'
+      >
+        <LogIn />
+      </Button>
+    </>
   );
 };
 
