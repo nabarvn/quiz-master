@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { BrainCircuit } from "lucide-react";
 import { Card } from "@/components/ui";
+import Balancer from "react-wrap-balancer";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
 const StartQuiz = () => {
@@ -20,7 +21,9 @@ const StartQuiz = () => {
 
       <CardContent>
         <p className='text-sm text-muted-foreground'>
-          Challenge yourself to a quiz with a topic of your choice.
+          <Balancer ratio={0.5}>
+            Challenge yourself to a quiz with a topic of your choice.
+          </Balancer>
         </p>
       </CardContent>
     </Card>
