@@ -15,7 +15,7 @@ const HotTopics = () => {
         <CardTitle className='text-xl font-bold'>Hot Topics</CardTitle>
 
         <CardDescription>
-          Click on a topic to start a quiz on it.
+          Initiate a quiz by clicking on a topic.
         </CardDescription>
       </CardHeader>
 

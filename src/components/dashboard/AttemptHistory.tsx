@@ -20,7 +20,7 @@ const AttemptHistory = () => {
 
       <CardContent>
         <p className='text-sm text-muted-foreground'>
-          View all past quiz attempts.
+          View all previous quiz attempts.
         </p>
       </CardContent>
     </Card>

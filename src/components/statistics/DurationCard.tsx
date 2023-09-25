@@ -19,7 +19,7 @@ const DurationCard = ({ timeEnded, timeStarted }: DurationCardProps) => {
       <CardContent>
         <div className='text-sm font-medium'>
           {timeEnded.toUTCString() === timeStarted.toUTCString()
-            ? "Quiz game has not been completed."
+            ? "Incomplete quiz game."
             : formatTimeDelta(differenceInSeconds(timeEnded, timeStarted))}
         </div>
       </CardContent>
