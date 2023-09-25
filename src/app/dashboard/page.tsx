@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import type { Metadata } from "next";
 import { getAuthSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import Balancer from "react-wrap-balancer";
 
 import {
   AttemptHistory,
@@ -26,7 +27,10 @@ const DashboardPage = async () => {
     <main className='mx-auto max-w-7xl p-8'>
       <div className='flex items-center'>
         <h2 className='text-2xl font-bold tracking-tight mr-2'>
-          Welcome to your quiz dashboard, {session.user.name}! 🔥
+          <Balancer ratio={0.5}>
+            Welcome to your quiz dashboard, {session.user.name?.split(" ")[0]}.
+            🔥
+          </Balancer>
         </h2>
       </div>
 
