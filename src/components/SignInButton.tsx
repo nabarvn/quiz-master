@@ -42,7 +42,7 @@ const SignInButton = ({ text }: SignInButtonProps) => {
   ) : (
     <>
       <Button
-        className='hidden md:flex h-10'
+        className='hidden md:flex text-base h-10'
         onClick={signInWithGoogle}
         isLoading={isLoading}
       >
