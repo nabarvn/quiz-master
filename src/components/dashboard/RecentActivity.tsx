@@ -43,11 +43,13 @@ const RecentActivity = async ({
         <CardTitle className='text-xl font-bold'>Recent Activity</CardTitle>
 
         <CardDescription>
-          You have played a total of {gamesCount} quizzes.
+          {`You have played a total of ${gamesCount} ${
+            gamesCount === 1 ? "quiz" : "quizzes"
+          }.`}
         </CardDescription>
       </CardHeader>
 
-      <CardContent className='relative overflow-y-auto h-[205px] md:h-[520px] lg:h-[384px] xl:h-[475px] scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-500 scrollbar-thumb-rounded-sm'>
+      <CardContent className='relative overflow-y-auto h-[205px] md:h-[515px] lg:h-[384px] xl:h-[470px] scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-500 scrollbar-thumb-rounded-sm'>
         {gamesCount !== 0 ? (
           <History games={games} />
         ) : (
