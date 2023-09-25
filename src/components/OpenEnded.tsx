@@ -1,10 +1,10 @@
 "use client";
 
 import { differenceInSeconds } from "date-fns";
-import { cn, formatTimeDelta } from "@/lib/utils";
 import { Game, Question } from "@prisma/client";
-import { Button, buttonVariants } from "@/components/ui/Button";
 import keyword_extractor from "keyword-extractor";
+import { cn, formatTimeDelta } from "@/lib/utils";
+import { Button, buttonVariants } from "@/components/ui/Button";
 
 import {
   BarChart,
@@ -17,7 +17,6 @@ import {
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -28,10 +27,10 @@ import axios from "axios";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { CheckAnswerValidator } from "@/lib/validators/answer";
-import { EndGameValidator } from "@/lib/validators/end-game";
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useHydrated } from "react-hydration-provider";
+import { EndGameValidator } from "@/lib/validators/end-game";
+import { CheckAnswerValidator } from "@/lib/validators/answer";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 type OpenEndedProps = {
   game: Game & { questions: Pick<Question, "id" | "question" | "answer">[] };
@@ -190,111 +189,83 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
   return (
     hydrated && (
       <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] -mt-10'>
-        {currentQuestion && answerWithBlanks ? (
-          <Fragment>
-            <div className='flex flex-row justify-between'>
-              <div className='flex flex-col'>
-                {/* topic */}
-                <p>
-                  <span className='text-slate-400'>Topic</span> &nbsp;
-                  <span className='text-white dark:text-slate-300 rounded-lg bg-slate-700 dark:bg-slate-950 px-2 py-1'>
-                    {game.topic}
-                  </span>
-                </p>
+        <div className='flex flex-row justify-between'>
+          <div className='flex flex-col'>
+            {/* topic */}
+            <p>
+              <span className='text-slate-400'>Topic</span> &nbsp;
+              <span className='text-white dark:text-slate-300 rounded-lg bg-slate-700 dark:bg-slate-950 px-2 py-1'>
+                {game.topic}
+              </span>
+            </p>
 
-                <div className='flex self-start text-slate-400 mt-3'>
-                  <Timer className='mr-2' />
-
-                  {formatTimeDelta(
-                    differenceInSeconds(timeNow, game.timeStarted)
-                  )}
-                </div>
-              </div>
-
-              <Card className='flex flex-row items-center p-2'>
-                <Target size={30} />
-
-                <span className='text-2xl opacity-75 ml-3'>
-                  {averagePercentage.toFixed(2)}
-                </span>
-
-                <Percent size={25} />
-              </Card>
+            <div className='flex self-start text-slate-400 mt-3'>
+              <Timer className='mr-2' />
+              {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
             </div>
+          </div>
 
-            <Card className='w-full text-slate-700 dark:text-slate-300 mt-4'>
-              <CardHeader className='flex flex-row items-center'>
-                <CardTitle className='text-center divide-y divide-slate-900 dark:divide-slate-300 mr-5'>
-                  <div>{questionIndex + 1}</div>
+          <Card className='flex flex-row items-center p-2'>
+            <Target size={30} />
 
-                  <div className='text-base'>{game.questions.length}</div>
-                </CardTitle>
+            <span className='text-2xl opacity-75 ml-3'>
+              {averagePercentage.toFixed(2)}
+            </span>
 
-                <CardDescription className='flex-grow text-lg text-slate-700 dark:text-slate-300'>
-                  {currentQuestion?.question}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <div className='flex flex-col items-center justify-center w-full mt-4'>
-              <div className='flex justify-start w-full mt-4'>
-                <h1 className='text-xl font-semibold'>
-                  {/* replace the blanks with input elements */}
-                  {answerWithBlanks?.split(blank).map((part, index) => {
-                    return (
-                      <Fragment key={index}>
-                        {part}
-                        {index === answerWithBlanks.split(blank).length - 1 ? (
-                          ""
-                        ) : (
-                          <input
-                            id='user-blank-input'
-                            className='text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none'
-                            type='text'
-                          />
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                </h1>
-              </div>
-
-              <Button
-                size='default'
-                variant='default'
-                className='mt-4'
-                disabled={isChecking || hasEnded}
-                onClick={() => {
-                  handleNext();
-                }}
-              >
-                {isChecking && (
-                  <Loader2 className='w-4 h-4 mr-2 animate-spin' />
-                )}
-                Next <ChevronRight className='w-4 h-4 ml-2' />
-              </Button>
-            </div>
-          </Fragment>
-        ) : (
-          <Card className='mx-auto w-fit -mt-32'>
-            <CardHeader>
-              <CardTitle>GPT Response Error</CardTitle>
-
-              <CardDescription>
-                Please construct the quiz again.
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent>
-              <Link
-                className={buttonVariants()}
-                href={"/quiz?topic=" + game.topic}
-              >
-                Retry
-              </Link>
-            </CardContent>
+            <Percent size={25} />
           </Card>
-        )}
+        </div>
+
+        <Card className='w-full text-slate-700 dark:text-slate-300 mt-4'>
+          <CardHeader className='flex flex-row items-center'>
+            <CardTitle className='text-center divide-y divide-slate-900 dark:divide-slate-300 mr-5'>
+              <div>{questionIndex + 1}</div>
+              <div className='text-base'>{game.questions.length}</div>
+            </CardTitle>
+
+            <CardDescription className='flex-grow text-lg text-slate-700 dark:text-slate-300'>
+              {currentQuestion?.question}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <div className='flex flex-col items-center justify-center w-full mt-4'>
+          <div className='flex justify-start w-full mt-4'>
+            <h1 className='text-xl font-semibold'>
+              {/* replace the blanks with input elements */}
+              {answerWithBlanks?.split(blank).map((part, index) => {
+                return (
+                  <Fragment key={index}>
+                    {part}
+
+                    {index === answerWithBlanks.split(blank).length - 1 ? (
+                      ""
+                    ) : (
+                      <input
+                        id='user-blank-input'
+                        className='text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none'
+                        type='text'
+                      />
+                    )}
+                  </Fragment>
+                );
+              })}
+            </h1>
+          </div>
+
+          <Button
+            size='default'
+            variant='default'
+            className='mt-4'
+            disabled={isChecking || hasEnded}
+            onClick={() => {
+              handleNext();
+            }}
+          >
+            {isChecking && <Loader2 className='w-4 h-4 mr-2 animate-spin' />}
+            Next <ChevronRight className='w-4 h-4 ml-2' />
+          </Button>
+        </div>
       </div>
     )
   );

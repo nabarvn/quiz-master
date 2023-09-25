@@ -9,7 +9,6 @@ import { cn, formatTimeDelta } from "@/lib/utils";
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -22,8 +21,8 @@ import { useHydrated } from "react-hydration-provider";
 import { CheckAnswerValidator } from "@/lib/validators/answer";
 import { EndGameValidator } from "@/lib/validators/end-game";
 import { Button, buttonVariants } from "@/components/ui/Button";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { BarChart, ChevronRight, Loader2, Timer } from "lucide-react";
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 type MCQProps = {
   game: Game & {
@@ -182,109 +181,80 @@ const MCQ = ({ game }: MCQProps) => {
   return (
     hydrated && (
       <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] mt-5 lg:mt-10 xl:mt-5'>
-        {currentQuestion && currentQuestion.options ? (
-          <Fragment>
-            <div className='flex flex-row justify-between'>
-              <div className='flex flex-col'>
-                {/* topic */}
-                <p>
-                  <span className='text-slate-400'>Topic</span> &nbsp;
-                  <span className='text-white dark:text-slate-300 rounded-lg bg-slate-700 dark:bg-slate-950 px-2 py-1'>
-                    {game.topic}
-                  </span>
-                </p>
+        <div className='flex flex-row justify-between'>
+          <div className='flex flex-col'>
+            {/* topic */}
+            <p>
+              <span className='text-slate-400'>Topic</span> &nbsp;
+              <span className='text-white dark:text-slate-300 rounded-lg bg-slate-700 dark:bg-slate-950 px-2 py-1'>
+                {game.topic}
+              </span>
+            </p>
 
-                <div className='flex self-start text-slate-400 mt-3'>
-                  <Timer className='mr-2' />
-
-                  {formatTimeDelta(
-                    differenceInSeconds(timeNow, game.timeStarted)
-                  )}
-                </div>
-              </div>
-
-              <MCQCounter
-                correctAnswers={stats.correctAnswers}
-                wrongAnswers={stats.wrongAnswers}
-              />
+            <div className='flex self-start text-slate-400 mt-3'>
+              <Timer className='mr-2' />
+              {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
             </div>
+          </div>
 
-            <Card className='w-full text-slate-700 dark:text-slate-300 mt-4'>
-              <CardHeader className='flex flex-row items-center'>
-                <CardTitle className='text-center divide-y divide-slate-900 dark:divide-slate-300 mr-5'>
-                  <div>{questionIndex + 1}</div>
+          <MCQCounter
+            correctAnswers={stats.correctAnswers}
+            wrongAnswers={stats.wrongAnswers}
+          />
+        </div>
 
-                  <div className='text-base'>{game.questions.length}</div>
-                </CardTitle>
+        <Card className='w-full text-slate-700 dark:text-slate-300 mt-4'>
+          <CardHeader className='flex flex-row items-center'>
+            <CardTitle className='text-center divide-y divide-slate-900 dark:divide-slate-300 mr-5'>
+              <div>{questionIndex + 1}</div>
+              <div className='text-base'>{game.questions.length}</div>
+            </CardTitle>
 
-                <CardDescription className='flex-grow text-lg text-slate-700 dark:text-slate-300'>
-                  {currentQuestion?.question}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <CardDescription className='flex-grow text-lg text-slate-700 dark:text-slate-300'>
+              {currentQuestion?.question}
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
-            <div className='flex flex-col items-center justify-center w-full mt-4 mb-10'>
-              {options.map((option, index) => {
-                return (
-                  <Button
-                    key={index}
-                    className='justify-start w-full border-slate-900 dark:border-slate-300 py-8 mb-4'
-                    onClick={() => setSelectedChoice(index)}
-                    variant={selectedChoice === index ? "default" : "outline"}
-                  >
-                    <div className='flex items-center justify-start'>
-                      <div
-                        className={
-                          selectedChoice === index
-                            ? "border border-slate-300 dark:border-slate-900 rounded-md w-10 p-2 px-3 mr-5"
-                            : "border border-slate-900 dark:border-slate-300 rounded-md w-10 p-2 px-3 mr-5"
-                        }
-                      >
-                        {index + 1}
-                      </div>
-
-                      <div className='text-start'>{option}</div>
-                    </div>
-                  </Button>
-                );
-              })}
-
+        <div className='flex flex-col items-center justify-center w-full mt-4 mb-10'>
+          {options.map((option, index) => {
+            return (
               <Button
-                size='default'
-                variant='default'
-                className='mt-2'
-                onClick={() => {
-                  handleNext();
-                }}
-                disabled={isChecking || hasEnded}
+                key={index}
+                className='justify-start w-full border-slate-900 dark:border-slate-300 py-8 mb-4'
+                onClick={() => setSelectedChoice(index)}
+                variant={selectedChoice === index ? "default" : "outline"}
               >
-                {isChecking && (
-                  <Loader2 className='w-4 h-4 mr-2 animate-spin' />
-                )}
-                Next <ChevronRight className='w-4 h-4 ml-2' />
+                <div className='flex items-center justify-start'>
+                  <div
+                    className={
+                      selectedChoice === index
+                        ? "border border-slate-300 dark:border-slate-900 rounded-md w-10 p-2 px-3 mr-5"
+                        : "border border-slate-900 dark:border-slate-300 rounded-md w-10 p-2 px-3 mr-5"
+                    }
+                  >
+                    {index + 1}
+                  </div>
+
+                  <div className='text-start'>{option}</div>
+                </div>
               </Button>
-            </div>
-          </Fragment>
-        ) : (
-          <Card className='mx-auto w-fit -mt-32'>
-            <CardHeader>
-              <CardTitle>GPT Response Error</CardTitle>
+            );
+          })}
 
-              <CardDescription>
-                Please construct the quiz again.
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent>
-              <Link
-                className={buttonVariants()}
-                href={"/quiz?topic=" + game.topic}
-              >
-                Retry
-              </Link>
-            </CardContent>
-          </Card>
-        )}
+          <Button
+            size='default'
+            variant='default'
+            className='mt-2'
+            onClick={() => {
+              handleNext();
+            }}
+            disabled={isChecking || hasEnded}
+          >
+            {isChecking && <Loader2 className='w-4 h-4 mr-2 animate-spin' />}
+            Next <ChevronRight className='w-4 h-4 ml-2' />
+          </Button>
+        </div>
       </div>
     )
   );
