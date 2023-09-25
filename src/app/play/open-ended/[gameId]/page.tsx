@@ -1,8 +1,18 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { Metadata } from "next";
+import { OpenEnded } from "@/components";
 import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth";
-import { OpenEnded } from "@/components";
+import { buttonVariants } from "@/components/ui/Button";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/Card";
 
 export const metadata: Metadata = {
   title: "Open-Ended Game | Quiz Master",
@@ -42,7 +52,25 @@ const OpenEndedQuizPage = async ({
 
   return (
     <main className='relative mx-auto min-h-screen max-w-7xl'>
-      <OpenEnded game={game} />
+      {game.questions[0] ? (
+        <OpenEnded game={game} />
+      ) : (
+        <Card className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[210px] lg:w-[270px] -mt-20'>
+          <CardHeader>
+            <CardTitle>GPT Response Error</CardTitle>
+            <CardDescription>Please construct the quiz again.</CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <Link
+              className={buttonVariants()}
+              href={"/quiz?topic=" + game.topic}
+            >
+              Retry
+            </Link>
+          </CardContent>
+        </Card>
+      )}
     </main>
   );
 };
