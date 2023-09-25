@@ -17,7 +17,7 @@ export async function POST(req: Request, res: Response) {
           `You are to generate a random hard MCQ question about ${topic}.`
         ),
         {
-          question: "question (do not put quotation marks)",
+          question: "question (do not put double quotation marks)",
           answer: "answer with max length of 15 words",
           option1: "option1 with max length of 15 words",
           option2: "option2 with max length of 15 words",
@@ -31,7 +31,7 @@ export async function POST(req: Request, res: Response) {
           `You are to generate a random hard open-ended question about ${topic}.`
         ),
         {
-          question: "question (do not put quotation marks)",
+          question: "question (do not put double quotation marks)",
           answer: "answer with max length of 15 words",
         }
       );

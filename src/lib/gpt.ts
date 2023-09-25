@@ -39,7 +39,7 @@ export async function strictOutput(
   for (let i = 0; i < attemptCount; i++) {
     let outputFormatPrompt: string = `\nYou are to output the following in JSON format: ${JSON.stringify(
       outputFormat
-    )}. \nDo not put quotation marks " " or escape characters \\ in the output fields.`;
+    )}. \nDo not put double quotation marks " " or escape characters \\ in the output fields.`;
 
     if (listOutput) {
       outputFormatPrompt += `\nIf output field is a list, classify output into the best element of the list.`;
