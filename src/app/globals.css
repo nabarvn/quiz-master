@@ -1,3 +1,49 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+.scrollbar-w-2::-webkit-scrollbar {
+  width: 0.25rem;
+  height: 0.25rem;
+}
+
+.thin-scrollbar-track-gray-lighter::-webkit-scrollbar-track,
+.thin-scrollbar-track-gray-lighter-dark::-webkit-scrollbar-track {
+  --bg-opacity: 0.5;
+  background-color: hsl(214, 23%, 82%);
+}
+
+.thin-scrollbar-thumb-gray::-webkit-scrollbar-thumb,
+.thin-scrollbar-thumb-gray-dark::-webkit-scrollbar-thumb {
+  --bg-opacity: 0.5;
+  background-color: hsl(214, 16%, 42%);
+}
+
+.thin-scrollbar-thumb-rounded::-webkit-scrollbar-thumb,
+.thin-scrollbar-thumb-rounded-dark::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+}
+
+@media screen and (min-width: 750px) {
+  .scrollbar-w-4::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  .scrollbar-track-gray-lighter::-webkit-scrollbar-track,
+  .scrollbar-track-gray-lighter-dark::-webkit-scrollbar-track {
+    --bg-opacity: 0.5;
+    background-color: hsl(214, 23%, 82%);
+  }
+
+  .scrollbar-thumb-gray::-webkit-scrollbar-thumb,
+  .scrollbar-thumb-gray-dark::-webkit-scrollbar-thumb {
+    --bg-opacity: 0.5;
+    background-color: hsl(214, 16%, 42%);
+  }
+
+  .scrollbar-thumb-rounded::-webkit-scrollbar-thumb,
+  .scrollbar-thumb-rounded-dark::-webkit-scrollbar-thumb {
+    border-radius: 2px;
+  }
+}
