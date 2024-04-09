@@ -1,11 +1,8 @@
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { Metadata } from "next";
-import { cn } from "@/lib/utils";
 import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth";
-import { buttonVariants } from "@/components/ui/Button";
-import { LucideLayoutDashboard } from "lucide-react";
+import { DashboardButton } from "@/components/buttons";
 
 import {
   AccuracyCard,
@@ -63,22 +60,16 @@ const StatisticsPage = async ({ params: { gameId } }: StatisticsPageProps) => {
   accuracy = Math.round(accuracy * 100) / 100;
 
   return (
-    <main className='mx-auto max-w-7xl p-8'>
-      <div className='flex items-center justify-between'>
-        <h2 className='text-2xl font-bold tracking-tight'>Summary</h2>
+    <main className="mx-auto max-w-7xl p-8">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight">Summary</h2>
 
-        <div className='flex items-center space-x-2'>
-          <Link
-            href='/dashboard'
-            className={cn(buttonVariants({ size: "sm" }), "text-base")}
-          >
-            <LucideLayoutDashboard className='w-4 h-4 mr-2' />
-            Dashboard
-          </Link>
+        <div className="flex items-center space-x-2">
+          <DashboardButton />
         </div>
       </div>
 
-      <div className='grid gap-4 mt-4 md:grid-cols-7'>
+      <div className="grid gap-4 mt-4 md:grid-cols-7">
         <ResultsCard accuracy={accuracy} />
 
         <AccuracyCard accuracy={accuracy} />

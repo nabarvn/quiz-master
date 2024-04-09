@@ -29,16 +29,13 @@ export async function POST(req: Request, res: Response) {
       });
     }
 
-    await db.game.update({
+    await db.game.delete({
       where: {
         id: gameId,
       },
-      data: {
-        timeEnded: new Date(),
-      },
     });
 
-    return new Response(JSON.stringify({ message: "Game ended" }), {
+    return new Response(JSON.stringify({ isGameDeleted: true }), {
       status: 200,
     });
   } catch (error) {
