@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { ZodError } from "zod";
-import { EndGameValidator } from "@/lib/validators/end-game";
 import { getAuthSession } from "@/lib/auth";
+import { GameActionValidator } from "@/lib/validators/game-action";
 
 export async function POST(req: Request, res: Response) {
   try {
@@ -15,7 +15,7 @@ export async function POST(req: Request, res: Response) {
 
     const body = await req.json();
 
-    const { gameId } = EndGameValidator.parse(body);
+    const { gameId } = GameActionValidator.parse(body);
 
     const game = await db.game.findUnique({
       where: {
