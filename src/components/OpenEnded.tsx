@@ -22,14 +22,13 @@ import {
   CardTitle,
 } from "@/components/ui/Card";
 
-import { z } from "zod";
 import axios from "axios";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { useHydrated } from "react-hydration-provider";
-import { EndGameValidator } from "@/lib/validators/end-game";
-import { CheckAnswerValidator } from "@/lib/validators/answer";
+import { CheckAnswerRequest } from "@/lib/validators/answer";
+import { GameActionRequest } from "@/lib/validators/game-action";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 type OpenEndedProps = {
@@ -52,7 +51,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
   const { mutate: endGame } = useMutation({
     mutationFn: async () => {
-      const payload: z.infer<typeof EndGameValidator> = {
+      const payload: GameActionRequest = {
         gameId: game.id,
       };
 
@@ -68,12 +67,15 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
       document.querySelectorAll("#user-blank-input").forEach((input) => {
         if (input instanceof HTMLInputElement) {
-          filledAnswer = filledAnswer.replace("_____", input.value);
+          filledAnswer = !input.value
+            ? filledAnswer.replace("_____", "[unanswered]")
+            : filledAnswer.replace("_____", input.value);
+
           input.value = "";
         }
       });
 
-      const payload: z.infer<typeof CheckAnswerValidator> = {
+      const payload: CheckAnswerRequest = {
         questionId: currentQuestion.id,
         userInput: filledAnswer,
       };
@@ -169,8 +171,8 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
   if (hasEnded) {
     return (
-      <div className='absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 -mt-20'>
-        <div className='font-semibold text-white bg-green-700 rounded-md whitespace-nowrap px-4 py-2 mt-2'>
+      <div className="absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 -mt-20">
+        <div className="font-semibold text-white bg-green-700 rounded-md whitespace-nowrap px-4 py-2 mt-2">
           You Completed in{" "}
           {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
         </div>
@@ -180,7 +182,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
           className={cn(buttonVariants({ size: "lg" }), "mt-2")}
         >
           View Statistics
-          <BarChart className='w-4 h-4 ml-2' />
+          <BarChart className="w-4 h-4 ml-2" />
         </Link>
       </div>
     );
@@ -188,27 +190,28 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
   return (
     hydrated && (
-      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] -mt-10'>
-        <div className='flex flex-row justify-between'>
-          <div className='flex flex-col'>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] -mt-10">
+        <div className="flex flex-row justify-between gap-4">
+          <div className="flex flex-col">
             {/* topic */}
-            <p>
-              <span className='text-slate-400'>Topic</span> &nbsp;
-              <span className='text-white dark:text-slate-300 rounded-lg bg-slate-700 dark:bg-slate-950 px-2 py-1'>
-                {game.topic}
-              </span>
-            </p>
+            <div className="flex flex-col md:flex-row space-y-0.5 md:space-x-2">
+              <p className="text-slate-400 md:self-center">Topic</p>
 
-            <div className='flex self-start text-slate-400 mt-3'>
-              <Timer className='mr-2' />
+              <p className="text-white dark:text-slate-300 rounded-lg bg-slate-700 dark:bg-slate-950 px-2 py-1">
+                {game.topic}
+              </p>
+            </div>
+
+            <div className="flex self-start text-slate-400 mt-3">
+              <Timer className="mr-2" />
               {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
             </div>
           </div>
 
-          <Card className='flex flex-row items-center p-2'>
+          <Card className="flex flex-row items-center h-fit mt-[26px] md:mt-0 p-2">
             <Target size={30} />
 
-            <span className='text-2xl opacity-75 ml-3'>
+            <span className="text-2xl opacity-75 ml-3">
               {averagePercentage.toFixed(2)}
             </span>
 
@@ -216,22 +219,22 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
           </Card>
         </div>
 
-        <Card className='w-full text-slate-700 dark:text-slate-300 mt-4'>
-          <CardHeader className='flex flex-row items-center'>
-            <CardTitle className='text-center divide-y divide-slate-900 dark:divide-slate-300 mr-5'>
+        <Card className="w-full text-slate-700 dark:text-slate-300 mt-4">
+          <CardHeader className="flex flex-row items-center">
+            <CardTitle className="text-center divide-y divide-slate-900 dark:divide-slate-300 mr-5">
               <div>{questionIndex + 1}</div>
-              <div className='text-base'>{game.questions.length}</div>
+              <div className="text-base">{game.questions.length}</div>
             </CardTitle>
 
-            <CardDescription className='flex-grow text-lg text-slate-700 dark:text-slate-300'>
+            <CardDescription className="flex-grow text-lg text-slate-700 dark:text-slate-300">
               {currentQuestion?.question}
             </CardDescription>
           </CardHeader>
         </Card>
 
-        <div className='flex flex-col items-center justify-center w-full mt-4'>
-          <div className='flex justify-start w-full mt-4'>
-            <h1 className='text-xl font-semibold'>
+        <div className="flex flex-col items-center justify-center w-full mt-4">
+          <div className="flex justify-start w-full mt-4">
+            <h1 className="text-xl font-semibold">
               {/* replace the blanks with input elements */}
               {answerWithBlanks?.split(blank).map((part, index) => {
                 return (
@@ -242,9 +245,9 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
                       ""
                     ) : (
                       <input
-                        id='user-blank-input'
-                        className='text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none'
-                        type='text'
+                        id="user-blank-input"
+                        className="text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none"
+                        type="text"
                       />
                     )}
                   </Fragment>
@@ -254,16 +257,16 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
           </div>
 
           <Button
-            size='default'
-            variant='default'
-            className='mt-4'
+            size="default"
+            variant="default"
+            className="mt-4"
             disabled={isChecking || hasEnded}
             onClick={() => {
               handleNext();
             }}
           >
-            {isChecking && <Loader2 className='w-4 h-4 mr-2 animate-spin' />}
-            Next <ChevronRight className='w-4 h-4 ml-2' />
+            {isChecking && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Next <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </div>
