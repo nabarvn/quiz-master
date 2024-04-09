@@ -94,10 +94,10 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
   form.watch();
 
   return (
-    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] md:w-[390px] lg:w-[500px] -mt-6 lg:-mt-0 xl:-mt-6'>
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] md:w-[390px] lg:w-[500px] -mt-6 lg:-mt-0 xl:-mt-6">
       <Card>
         <CardHeader>
-          <CardTitle className='text-xl font-bold'>Quiz Constructor</CardTitle>
+          <CardTitle className="text-xl font-bold">Quiz Constructor</CardTitle>
 
           <CardDescription>
             Curate your personalized knowledge test.
@@ -106,29 +106,29 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
 
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
-                name='topic'
+                name="topic"
                 control={form.control}
                 render={({ field }) => (
-                  <FormItem className='relative'>
+                  <FormItem className="relative">
                     <FormLabel>Topic</FormLabel>
 
                     <FormControl>
-                      <Input {...field} placeholder='Enter a topic...' />
+                      <Input {...field} placeholder="Enter a topic..." />
                     </FormControl>
 
                     <FormDescription>
                       Please provide a quiz topic of your choice.
                     </FormDescription>
 
-                    <FormMessage className='absolute -bottom-5' />
+                    <FormMessage className="absolute -bottom-5" />
                   </FormItem>
                 )}
               />
 
               <FormField
-                name='amount'
+                name="amount"
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
@@ -137,8 +137,8 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
                     <FormControl>
                       <Input
                         {...field}
-                        type='number'
-                        placeholder='How many questions?'
+                        type="number"
+                        placeholder="How many questions?"
                         min={1}
                         max={10}
                         onChange={(e) => {
@@ -156,43 +156,49 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
                 )}
               />
 
-              <div className='flex justify-between'>
-                <Button
-                  type='button'
-                  size='icon'
-                  className='w-1/2 rounded-none rounded-l-lg text-xs md:text-sm'
-                  variant={
-                    form.getValues("type") === "mcq" ? "default" : "secondary"
-                  }
-                  onClick={() => {
-                    form.setValue("type", "mcq");
-                  }}
-                >
-                  <CopyCheck className='w-4 h-4 mr-2' /> Multiple Choice
-                </Button>
+              <div className="flex flex-col space-y-2">
+                <div className="flex justify-between">
+                  <Button
+                    type="button"
+                    size="icon"
+                    className="w-1/2 rounded-none rounded-l-lg text-xs md:text-sm"
+                    variant={
+                      form.getValues("type") === "mcq" ? "default" : "secondary"
+                    }
+                    onClick={() => {
+                      form.setValue("type", "mcq");
+                    }}
+                  >
+                    <CopyCheck className="w-4 h-4 mr-2" /> Multiple Choice
+                  </Button>
 
-                <Separator orientation='vertical' />
+                  <Separator orientation="vertical" />
 
-                <Button
-                  type='button'
-                  size='icon'
-                  className='w-1/2 rounded-none rounded-r-lg text-xs md:text-sm'
-                  variant={
-                    form.getValues("type") === "open_ended"
-                      ? "default"
-                      : "secondary"
-                  }
-                  onClick={() => form.setValue("type", "open_ended")}
-                >
-                  <BookOpen className='w-4 h-4 mr-2' /> Open-Ended
-                </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    className="w-1/2 rounded-none rounded-r-lg text-xs md:text-sm"
+                    variant={
+                      form.getValues("type") === "open_ended"
+                        ? "default"
+                        : "secondary"
+                    }
+                    onClick={() => form.setValue("type", "open_ended")}
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" /> Open-Ended
+                  </Button>
+                </div>
+
+                <div className="text-[0.8rem] text-muted-foreground">
+                  Choose your preference of question format.
+                </div>
               </div>
 
               <Button
-                type='submit'
+                type="submit"
                 disabled={isLoading || isFetching}
                 isLoading={isLoading || isFetching}
-                className='text-xs md:text-sm'
+                className="text-xs md:text-sm"
               >
                 Submit
               </Button>
