@@ -11,14 +11,14 @@ type MCQCounterProps = {
 
 const MCQCounter = ({ correctAnswers, wrongAnswers }: MCQCounterProps) => {
   return (
-    <Card className='flex flex-row items-center justify-center p-2'>
-      <CheckCircle2 color='green' size={30} />
-      <span className='text-2xl text-[green] mx-3'>{correctAnswers}</span>
+    <Card className="flex flex-row items-center justify-center h-fit mt-[26px] md:mt-0 p-2">
+      <CheckCircle2 color="green" size={30} />
+      <span className="text-2xl text-[green] mx-3">{correctAnswers}</span>
 
-      <Separator orientation='vertical' />
+      <Separator orientation="vertical" />
 
-      <span className='text-2xl text-[red] mx-3'>{wrongAnswers}</span>
-      <XCircle color='red' size={30} />
+      <span className="text-2xl text-[red] mx-3">{wrongAnswers}</span>
+      <XCircle color="red" size={30} />
     </Card>
   );
 };
