@@ -14,7 +14,7 @@ export async function strictOutput(
   outputFormat: OutputFormat,
   defaultCategory: string = "",
   outputValueOnly: boolean = false,
-  model: string = "gpt-4-turbo-preview",
+  model: string = "gpt-4-turbo",
   temperature: number = 1,
   attemptCount: number = 3,
   verbose: boolean = false
