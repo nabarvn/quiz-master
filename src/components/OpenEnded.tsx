@@ -132,7 +132,8 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
       const key = event.key;
 
       if (key === "Enter") {
-        handleNext();
+        game.timeEnded.toUTCString() === game.timeStarted.toUTCString() &&
+          handleNext();
       }
     };
 
@@ -141,7 +142,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleNext]);
+  }, [game.timeEnded, game.timeStarted, handleNext]);
 
   const blank = "_____";
 
@@ -204,7 +205,12 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
             <div className="flex self-start text-slate-400 mt-3">
               <Timer className="mr-2" />
-              {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
+
+              {game.timeEnded.toUTCString() === game.timeStarted.toUTCString()
+                ? formatTimeDelta(
+                    differenceInSeconds(timeNow, game.timeStarted)
+                  )
+                : "Game Over"}
             </div>
           </div>
 
@@ -246,6 +252,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
                     ) : (
                       <input
                         id="user-blank-input"
+                        disabled={isChecking}
                         className="text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none"
                         type="text"
                       />
@@ -260,7 +267,11 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
             size="default"
             variant="default"
             className="mt-4"
-            disabled={isChecking || hasEnded}
+            disabled={
+              isChecking ||
+              hasEnded ||
+              game.timeEnded.toUTCString() !== game.timeStarted.toUTCString()
+            }
             onClick={() => {
               handleNext();
             }}
