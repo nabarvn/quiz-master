@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { useState } from "react";
 import { Game } from "@prisma/client";
 import { Button } from "@/components/ui";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,7 @@ type DeleteGameButtonProps = {
 const DeleteGameButton = ({ game }: DeleteGameButtonProps) => {
   const router = useRouter();
   const { toast } = useToast();
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const { mutate: deleteGame, isLoading: isDeleting } = useMutation({
     mutationFn: async () => {
@@ -28,15 +30,20 @@ const DeleteGameButton = ({ game }: DeleteGameButtonProps) => {
       return response.data;
     },
 
-    onSuccess: ({ isGameDeleted }) => {
+    onSuccess: ({ isGameDeleted }: { isGameDeleted: boolean }) => {
       if (isGameDeleted) {
-        toast({
-          title: "Deleted",
-          description: "Game deleted successfully!",
-          variant: "success",
-        });
-
         router.refresh();
+        setIsRefreshing(true);
+
+        setTimeout(() => {
+          toast({
+            title: "Deleted",
+            description: "Game deleted successfully!",
+            variant: "success",
+          });
+
+          setIsRefreshing(false);
+        }, 1000);
       } else {
         toast({
           title: "Deletion Error",
@@ -51,11 +58,11 @@ const DeleteGameButton = ({ game }: DeleteGameButtonProps) => {
     <Button
       size="sm"
       variant="ghost"
-      disabled={isDeleting}
       onClick={() => deleteGame()}
+      disabled={isDeleting || isRefreshing}
       className="rounded-lg self-end"
     >
-      {isDeleting ? (
+      {isDeleting || isRefreshing ? (
         <Loader2 className="w-3 md:w-4 h-3 md:h-4 animate-spin" />
       ) : (
         <Trash2 className="w-3 md:w-4 h-3 md:h-4 shrink-0" />
