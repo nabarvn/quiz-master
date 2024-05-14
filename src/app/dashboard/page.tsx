@@ -24,9 +24,9 @@ const DashboardPage = async () => {
   }
 
   return (
-    <main className='mx-auto max-w-7xl p-8'>
-      <div className='flex items-center'>
-        <h2 className='text-2xl font-bold tracking-tight mr-2'>
+    <main className="mx-auto max-w-7xl p-8">
+      <div className="flex items-center w-full">
+        <h2 className="text-2xl font-bold tracking-tight mr-2">
           <Balancer ratio={0.5}>
             Welcome to your quiz dashboard, {session.user.name?.split(" ")[0]}.
             🔥
@@ -34,12 +34,12 @@ const DashboardPage = async () => {
         </h2>
       </div>
 
-      <div className='grid gap-4 md:grid-cols-2 mt-4'>
+      <div className="grid gap-4 md:grid-cols-2 mt-4">
         <StartQuiz />
         <AttemptHistory />
       </div>
 
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4'>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4">
         <HotTopics />
 
         <RecentActivity

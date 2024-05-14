@@ -57,7 +57,7 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
     resolver: zodResolver(QuizConstructorValidator),
     defaultValues: {
       topic: topicParam,
-      type: "open_ended",
+      type: "mcq",
       amount: 3,
     },
   });
@@ -65,6 +65,8 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
   const onSubmit = async (data: QuizConstructorInput) => {
     getQuestions(data, {
       onError: (error) => {
+        setIsFetching(true);
+
         if (error instanceof AxiosError) {
           if (error.response?.status === 500) {
             toast({
@@ -74,6 +76,10 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
             });
           }
         }
+
+        setTimeout(() => {
+          setIsFetching(false);
+        }, 2000);
       },
       onSuccess: ({ gameId }: { gameId: string }) => {
         setIsFetching(true);
@@ -110,6 +116,7 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
               <FormField
                 name="topic"
                 control={form.control}
+                disabled={isLoading || isFetching}
                 render={({ field }) => (
                   <FormItem className="relative">
                     <FormLabel>Topic</FormLabel>
@@ -130,6 +137,7 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
               <FormField
                 name="amount"
                 control={form.control}
+                disabled={isLoading || isFetching}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Number of Questions</FormLabel>
@@ -159,15 +167,16 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
               <div className="flex flex-col space-y-2">
                 <div className="flex justify-between">
                   <Button
-                    type="button"
                     size="icon"
-                    className="w-1/2 rounded-none rounded-l-lg text-xs md:text-sm"
+                    type="button"
+                    disabled={isLoading || isFetching}
                     variant={
                       form.getValues("type") === "mcq" ? "default" : "secondary"
                     }
                     onClick={() => {
                       form.setValue("type", "mcq");
                     }}
+                    className="w-1/2 rounded-none rounded-l-lg text-xs md:text-sm"
                   >
                     <CopyCheck className="w-4 h-4 mr-2" /> Multiple Choice
                   </Button>
@@ -175,15 +184,16 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
                   <Separator orientation="vertical" />
 
                   <Button
-                    type="button"
                     size="icon"
-                    className="w-1/2 rounded-none rounded-r-lg text-xs md:text-sm"
+                    type="button"
+                    disabled={isLoading || isFetching}
                     variant={
                       form.getValues("type") === "open_ended"
                         ? "default"
                         : "secondary"
                     }
                     onClick={() => form.setValue("type", "open_ended")}
+                    className="w-1/2 rounded-none rounded-r-lg text-xs md:text-sm"
                   >
                     <BookOpen className="w-4 h-4 mr-2" /> Open-Ended
                   </Button>

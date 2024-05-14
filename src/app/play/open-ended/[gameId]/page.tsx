@@ -46,26 +46,29 @@ const OpenEndedQuizPage = async ({
     },
   });
 
-  if (!game || game.gameType !== "open_ended") {
+  if (
+    !game ||
+    game.timeEnded.toUTCString() !== game.timeStarted.toUTCString()
+  ) {
     return redirect("/quiz");
   }
 
   return (
-    <main className='relative mx-auto min-h-screen max-w-7xl'>
+    <main className="relative mx-auto min-h-screen max-w-7xl">
       {game.questions[0] ? (
         <OpenEnded game={game} />
       ) : (
-        <Card className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[210px] lg:w-[270px] -mt-20'>
+        <Card className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[210px] lg:w-[270px] -mt-20">
           <CardHeader>
             <CardTitle>GPT Response Error</CardTitle>
-            <CardDescription>Please construct the quiz again.</CardDescription>
+
+            <CardDescription>
+              Please construct the quiz again with another topic.
+            </CardDescription>
           </CardHeader>
 
           <CardContent>
-            <Link
-              className={buttonVariants()}
-              href={"/quiz?topic=" + game.topic}
-            >
+            <Link className={buttonVariants()} href="/quiz">
               Retry
             </Link>
           </CardContent>

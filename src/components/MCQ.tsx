@@ -63,6 +63,16 @@ const MCQ = ({ game }: MCQProps) => {
 
   const { mutate: checkAnswer, isLoading: isChecking } = useMutation({
     mutationFn: async () => {
+      if (selectedChoice === -1) {
+        toast({
+          title: "Please Make a Choice",
+          description: "Ensure you select an option before proceeding.",
+          variant: "default",
+        });
+
+        return { isCorrect: null };
+      }
+
       const payload: CheckAnswerRequest = {
         questionId: currentQuestion.id,
         userInput: options[selectedChoice],
@@ -98,7 +108,9 @@ const MCQ = ({ game }: MCQProps) => {
 
   const handleNext = useCallback(() => {
     checkAnswer(undefined, {
-      onSuccess: ({ isCorrect }) => {
+      onSuccess: ({ isCorrect }: { isCorrect: boolean | null }) => {
+        if (isCorrect === null) return;
+
         if (isCorrect) {
           setStats((stats) => ({
             ...stats,
@@ -152,7 +164,12 @@ const MCQ = ({ game }: MCQProps) => {
         setSelectedChoice(3);
         buttonFocus(3);
       } else if (key === "Enter") {
-        handleNext();
+        if (buttonRefs) {
+          buttonRefs.current.some((buttonRef) => buttonRef?.blur());
+        }
+
+        game.timeEnded.toUTCString() === game.timeStarted.toUTCString() &&
+          handleNext();
       }
     };
 
@@ -161,7 +178,7 @@ const MCQ = ({ game }: MCQProps) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleNext]);
+  }, [game.timeEnded, game.timeStarted, handleNext]);
 
   const buttonFocus = (index: number) => {
     const buttonRef = buttonRefs.current[index];
@@ -175,7 +192,7 @@ const MCQ = ({ game }: MCQProps) => {
     return (
       <div className="absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 -mt-20">
         <div className="font-semibold text-white bg-green-500 rounded-md whitespace-nowrap px-4 py-2 mt-2">
-          You Completed in{" "}
+          You Completed in&nbsp;
           {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
         </div>
 
@@ -206,7 +223,12 @@ const MCQ = ({ game }: MCQProps) => {
 
             <div className="flex self-start text-slate-400 mt-3">
               <Timer className="mr-2" />
-              {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
+
+              {game.timeEnded.toUTCString() === game.timeStarted.toUTCString()
+                ? formatTimeDelta(
+                    differenceInSeconds(timeNow, game.timeStarted)
+                  )
+                : "Game Over"}
             </div>
           </div>
 
@@ -234,6 +256,7 @@ const MCQ = ({ game }: MCQProps) => {
             return (
               <Button
                 key={index}
+                disabled={isChecking}
                 ref={(el) => (buttonRefs.current[index] = el)} // assign ref to each button
                 className="justify-start w-full border-slate-900 dark:border-slate-300 py-8 mb-4"
                 onClick={() => setSelectedChoice(index)}
@@ -263,9 +286,15 @@ const MCQ = ({ game }: MCQProps) => {
             onClick={() => {
               handleNext();
             }}
-            disabled={isChecking || hasEnded}
+            disabled={
+              isChecking ||
+              hasEnded ||
+              game.timeEnded.toUTCString() !== game.timeStarted.toUTCString()
+            }
           >
-            {isChecking && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {isChecking && selectedChoice !== -1 && (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            )}
             Next <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
