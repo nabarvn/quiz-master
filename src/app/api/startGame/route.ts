@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { QuizConstructorValidator } from "@/lib/validators/quiz";
 import { getAuthSession } from "@/lib/auth";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request, res: Response) {
   try {
     const session = await getAuthSession();
