@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import { useState } from "react";
+import { useTransition } from "react";
 import { Game } from "@prisma/client";
 import { Button } from "@/components/ui";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ type DeleteGameButtonProps = {
 const DeleteGameButton = ({ game }: DeleteGameButtonProps) => {
   const router = useRouter();
   const { toast } = useToast();
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isRefreshing, startTransition] = useTransition();
 
   const { mutate: deleteGame, isLoading: isDeleting } = useMutation({
     mutationFn: async () => {
@@ -32,18 +32,15 @@ const DeleteGameButton = ({ game }: DeleteGameButtonProps) => {
 
     onSuccess: ({ isGameDeleted }: { isGameDeleted: boolean }) => {
       if (isGameDeleted) {
-        router.refresh();
-        setIsRefreshing(true);
+        startTransition(() => {
+          router.refresh();
 
-        setTimeout(() => {
           toast({
             title: "Deleted",
             description: "Game deleted successfully!",
-            variant: "success",
+            variant: "default",
           });
-
-          setIsRefreshing(false);
-        }, 1000);
+        });
       } else {
         toast({
           title: "Deletion Error",
