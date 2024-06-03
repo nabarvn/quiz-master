@@ -61,6 +61,10 @@ const MCQ = ({ game }: MCQProps) => {
     return JSON.parse(currentQuestion.options as string) as string[];
   }, [currentQuestion]);
 
+  const allConciseOptions = options.every(
+    (option) => option.split(" ").length < 7
+  );
+
   const { mutate: checkAnswer, isLoading: isChecking } = useMutation({
     mutationFn: async () => {
       if (selectedChoice === -1) {
@@ -209,7 +213,7 @@ const MCQ = ({ game }: MCQProps) => {
 
   return (
     hydrated && (
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] mt-5 lg:mt-10 xl:mt-5">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl lg:max-w-5xl w-[90vw] md:w-[80vw] mt-10 lg:mt-5">
         <div className="flex flex-row justify-between gap-4">
           <div className="flex flex-col">
             {/* topic */}
@@ -252,37 +256,45 @@ const MCQ = ({ game }: MCQProps) => {
         </Card>
 
         <div className="flex flex-col items-center justify-center w-full mt-4 mb-10">
-          {options.map((option, index) => {
-            return (
-              <Button
-                key={index}
-                disabled={isChecking}
-                ref={(el) => (buttonRefs.current[index] = el)} // assign ref to each button
-                className="justify-start w-full border-slate-900 dark:border-slate-300 py-8 mb-4"
-                onClick={() => setSelectedChoice(index)}
-                variant={selectedChoice === index ? "default" : "outline"}
-              >
-                <div className="flex items-center justify-start">
-                  <div
-                    className={
-                      selectedChoice === index
-                        ? "border border-slate-300 dark:border-slate-900 rounded-md w-10 p-2 px-3 mr-5"
-                        : "border border-slate-900 dark:border-slate-300 rounded-md w-10 p-2 px-3 mr-5"
-                    }
-                  >
-                    {index + 1}
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 min-w-full gap-2">
+            {options.map((option, index) => {
+              return (
+                <Button
+                  key={index}
+                  disabled={isChecking}
+                  ref={(el) => (buttonRefs.current[index] = el)} // assign ref to each button
+                  className="justify-start w-full border-slate-900 dark:border-slate-300 py-8"
+                  onClick={() => setSelectedChoice(index)}
+                  variant={selectedChoice === index ? "default" : "outline"}
+                >
+                  <div className="flex items-center justify-start">
+                    <div
+                      className={
+                        selectedChoice === index
+                          ? "border border-slate-300 dark:border-slate-900 rounded-md w-10 shrink-0 p-2 px-3 mr-5"
+                          : "border border-slate-900 dark:border-slate-300 rounded-md w-10 shrink-0 p-2 px-3 mr-5"
+                      }
+                    >
+                      {index + 1}
+                    </div>
 
-                  <div className="text-start">{option}</div>
-                </div>
-              </Button>
-            );
-          })}
+                    <div
+                      className={cn("text-start", {
+                        "lg:self-start": !allConciseOptions,
+                      })}
+                    >
+                      {option}
+                    </div>
+                  </div>
+                </Button>
+              );
+            })}
+          </div>
 
           <Button
             size="default"
             variant="default"
-            className="mt-2"
+            className="mt-4"
             onClick={() => {
               handleNext();
             }}
