@@ -26,7 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/Form";
 
-import { useState } from "react";
+import { useTransition } from "react";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +40,7 @@ type CreateQuizProps = {
 const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
   const router = useRouter();
   const { toast } = useToast();
-  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [isFetching, startTransition] = useTransition();
 
   const { mutate: getQuestions, isLoading } = useMutation({
     mutationFn: async ({ topic, type, amount }: QuizConstructorInput) => {
@@ -65,8 +65,6 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
   const onSubmit = async (data: QuizConstructorInput) => {
     getQuestions(data, {
       onError: (error) => {
-        setIsFetching(true);
-
         if (error instanceof AxiosError) {
           if (error.response?.status === 500) {
             toast({
@@ -76,23 +74,15 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
             });
           }
         }
-
-        setTimeout(() => {
-          setIsFetching(false);
-        }, 2000);
       },
       onSuccess: ({ gameId }: { gameId: string }) => {
-        setIsFetching(true);
-
-        if (form.getValues("type") === "mcq") {
-          router.push(`/play/mcq/${gameId}`);
-        } else if (form.getValues("type") === "open_ended") {
-          router.push(`/play/open-ended/${gameId}`);
-        }
-
-        setTimeout(() => {
-          setIsFetching(false);
-        }, 2000);
+        startTransition(() => {
+          if (form.getValues("type") === "mcq") {
+            router.push(`/play/mcq/${gameId}`);
+          } else if (form.getValues("type") === "open_ended") {
+            router.push(`/play/open-ended/${gameId}`);
+          }
+        });
       },
     });
   };
@@ -100,7 +90,7 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
   form.watch();
 
   return (
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] md:w-[390px] lg:w-[500px] -mt-6 lg:-mt-0 xl:-mt-6">
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] md:w-[390px] lg:w-[750px] -mt-6 lg:-mt-2 xl:-mt-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-xl font-bold">Quiz Constructor</CardTitle>
@@ -113,56 +103,63 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                name="topic"
-                control={form.control}
-                disabled={isLoading || isFetching}
-                render={({ field }) => (
-                  <FormItem className="relative">
-                    <FormLabel>Topic</FormLabel>
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+                <FormField
+                  name="topic"
+                  control={form.control}
+                  disabled={isLoading || isFetching}
+                  render={({ field }) => (
+                    <FormItem className="relative lg:w-1/2">
+                      <FormLabel>Topic</FormLabel>
 
-                    <FormControl>
-                      <Input {...field} placeholder="Enter a topic..." />
-                    </FormControl>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Enter a topic..."
+                          className="text-base"
+                        />
+                      </FormControl>
 
-                    <FormDescription>
-                      Please provide a quiz topic of your choice.
-                    </FormDescription>
+                      <FormDescription>
+                        Please provide a quiz topic of your choice.
+                      </FormDescription>
 
-                    <FormMessage className="absolute -bottom-5" />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage className="absolute -bottom-5" />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                name="amount"
-                control={form.control}
-                disabled={isLoading || isFetching}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Number of Questions</FormLabel>
+                <FormField
+                  name="amount"
+                  control={form.control}
+                  disabled={isLoading || isFetching}
+                  render={({ field }) => (
+                    <FormItem className="relative lg:w-5/12">
+                      <FormLabel>Number of Questions</FormLabel>
 
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        placeholder="How many questions?"
-                        min={1}
-                        max={10}
-                        onChange={(e) => {
-                          form.setValue("amount", parseInt(e.target.value));
-                        }}
-                      />
-                    </FormControl>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          placeholder="How many questions?"
+                          className="text-base"
+                          min={1}
+                          max={10}
+                          onChange={(e) => {
+                            form.setValue("amount", parseInt(e.target.value));
+                          }}
+                        />
+                      </FormControl>
 
-                    <FormDescription>
-                      Select the count of quiz questions to be set.
-                    </FormDescription>
+                      <FormDescription>
+                        Select the count of quiz questions to be set.
+                      </FormDescription>
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage className="absolute -bottom-5" />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="flex flex-col space-y-2">
                 <div className="flex justify-between">
