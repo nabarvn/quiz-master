@@ -34,6 +34,19 @@ npm install
 cp .env.example .env
 ```
 
+> [!IMPORTANT]
+> Ensure you populate the variables with your respective API keys and configuration values before proceeding.
+
+### Configuring Prisma:
+
+```bash
+npx prisma generate
+```
+
+```bash
+npx prisma db push
+```
+
 ### Running the application:
 
 ```bash

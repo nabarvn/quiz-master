@@ -100,7 +100,9 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
     checkAnswer(undefined, {
       onSuccess: ({ percentageSimilar }) => {
         toast({
-          title: `Your answer is ${percentageSimilar}% similar to the correct answer.`,
+          title: "Similarity Check",
+          description: `Your answer is ${percentageSimilar}% similar to the correct answer.`,
+          variant: "default",
         });
 
         setAveragePercentage((prev) => {
@@ -191,7 +193,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
   return (
     hydrated && (
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl w-[90vw] md:w-[80vw] -mt-10">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-4xl lg:max-w-5xl w-[90vw] md:w-[80vw] -mt-10">
         <div className="flex flex-row justify-between gap-4">
           <div className="flex flex-col">
             {/* topic */}

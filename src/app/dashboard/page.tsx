@@ -25,8 +25,8 @@ const DashboardPage = async () => {
 
   return (
     <main className="mx-auto max-w-7xl p-8">
-      <div className="flex items-center w-full">
-        <h2 className="text-2xl font-bold tracking-tight mr-2">
+      <div className="flex items-center">
+        <h2 className="text-2xl font-bold tracking-tight w-full">
           <Balancer ratio={0.5}>
             Welcome to your quiz dashboard, {session.user.name?.split(" ")[0]}.
             🔥

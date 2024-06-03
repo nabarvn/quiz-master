@@ -21,7 +21,7 @@ export default async function Home() {
           <Link
             target="_blank"
             referrerPolicy="no-referrer"
-            href="https://github.com/nabarvn/quiz-master"
+            href="https://git.new/quiz"
             className="text-xs font-semibold text-slate-900 dark:text-slate-100"
           >
             Star on GitHub 🌟

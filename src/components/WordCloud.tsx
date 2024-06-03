@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
 import { cloudData } from "@/helpers/cloud-data";
 
 const Output = dynamic(async () => (await import("react-d3-cloud")).default, {
@@ -15,20 +14,19 @@ const fontSizeMapper = (word: { value: number }) => {
 
 const WordCloud = () => {
   const { theme } = useTheme();
-  const router = useRouter();
 
   return (
     <Output
       data={cloudData}
       height={500}
-      font='Times'
+      font="Times"
       fontSize={fontSizeMapper}
       rotate={0}
       padding={10}
       fill={theme === "dark" ? "white" : "black"}
-      onWordClick={(_, word) => {
-        router.push("/quiz?topic=" + word.text.toLowerCase());
-      }}
+      onWordClick={(_, word) =>
+        (window.location.href = `/quiz?topic=${word.text.toLowerCase()}`)
+      }
     />
   );
 };
