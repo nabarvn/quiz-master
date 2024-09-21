@@ -153,6 +153,8 @@ const MCQ = ({ game }: MCQProps) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (hasEnded) return;
+
       const key = event.key;
 
       if (key === "1") {
@@ -182,7 +184,7 @@ const MCQ = ({ game }: MCQProps) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [game.timeEnded, game.timeStarted, handleNext]);
+  }, [game.timeEnded, game.timeStarted, handleNext, hasEnded]);
 
   const buttonFocus = (index: number) => {
     const buttonRef = buttonRefs.current[index];
