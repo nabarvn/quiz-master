@@ -131,6 +131,8 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (hasEnded) return;
+
       const key = event.key;
 
       if (key === "Enter") {
@@ -144,7 +146,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [game.timeEnded, game.timeStarted, handleNext]);
+  }, [game.timeEnded, game.timeStarted, handleNext, hasEnded]);
 
   const blank = "_____";
 
