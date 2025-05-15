@@ -1,16 +1,12 @@
 import "./globals.css";
-import { cn } from "@/lib/utils";
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { cn, constructMetadata } from "@/lib/utils";
 import { Navbar, Providers } from "@/components";
 import { Toaster } from "@/components/ui";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Quiz Master",
-  description: "AI powered quiz platform",
-};
+export const metadata = constructMetadata();
 
 export default function RootLayout({
   children,
