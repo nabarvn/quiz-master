@@ -90,3 +90,9 @@ model Question {
 
   @@index([gameId])
 }
+
+model Ping {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
