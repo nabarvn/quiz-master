@@ -8,7 +8,7 @@ This innovative project harnesses the power of artificial intelligence (AI) to p
 <img src="./screenshot.png">
 
 <p align="center">
-  <a href="https://quiz.nabarun.ai"><strong>View Project »</strong></a>
+  <a href="https://quiz.nabarun.app"><strong>View Project »</strong></a>
 </p>
 
 ## Running Locally
@@ -53,7 +53,7 @@ npx prisma db push
 npm run dev
 ```
 
-## Tech Stack:
+## Tech Stack
 
 - **Language**: [TypeScript](https://www.typescriptlang.org)
 - **Framework**: [Next.js](https://nextjs.org)
