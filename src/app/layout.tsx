@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { cn, constructMetadata } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/next";
 import { Navbar, Providers } from "@/components";
 import { Toaster } from "@/components/ui";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
           </div>
 
           <Toaster />
+          <Analytics />
         </Providers>
       </body>
     </html>
