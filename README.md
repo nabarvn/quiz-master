@@ -62,7 +62,7 @@ npm run dev
 - **State Management**: [React Query](https://www.npmjs.com/package/@tanstack/react-query)
 - **ORM Toolkit**: [Prisma](https://www.prisma.io/docs/concepts/overview/what-is-prisma)
 - **LLM Provider**: [OpenAI](https://platform.openai.com/docs/introduction)
-- **MySQL Database**: [Aiven](https://aiven.io/docs/get-started)
+- **Postgres Database**: [Neon](https://neon.tech/docs/introduction/about)
 - **Authentication**: [NextAuth.js](https://next-auth.js.org/getting-started/introduction)
 - **Deployment**: [Vercel](https://vercel.com)
 
