@@ -6,10 +6,33 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function getModelName() {
+  const modelName = process.env.OPENAI_MODEL_NAME?.trim();
+
+  if (!modelName) {
+    throw new Error("OPENAI_MODEL_NAME is not set");
+  }
+
+  return modelName;
+}
+
+export function isGameCompleted({
+  timeEnded,
+  timeStarted,
+}: {
+  timeEnded: Date | null;
+  timeStarted: Date;
+}) {
+  return timeEnded !== null && timeEnded > timeStarted;
+}
+
 export function formatTimeDelta(seconds: number) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds - hours * 3600) / 60);
-  const secs = Math.floor(seconds - hours * 3600 - minutes * 60);
+  const totalSeconds = Math.max(0, Math.floor(seconds));
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds - hours * 3600) / 60);
+  const remainingSeconds = totalSeconds - hours * 3600 - minutes * 60;
+
   const parts = [];
 
   if (hours > 0) {
@@ -20,11 +43,11 @@ export function formatTimeDelta(seconds: number) {
     parts.push(`${minutes}m`);
   }
 
-  if (secs > 0) {
-    parts.push(`${secs}s`);
+  if (remainingSeconds > 0) {
+    parts.push(`${remainingSeconds}s`);
   }
 
-  return parts.join(" ");
+  return parts.length > 0 ? parts.join(" ") : "0s";
 }
 
 export function constructMetadata({
