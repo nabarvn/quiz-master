@@ -6,6 +6,7 @@ export { default as Icons } from "./Icons";
 export { default as ThemeToggle } from "./ThemeToggle";
 export { default as WordCloud } from "./WordCloud";
 export { default as CreateQuiz } from "./CreateQuiz";
+export { default as LatchLink } from "./LatchLink";
 export { default as MCQ } from "./MCQ";
 export { default as MCQCounter } from "./MCQCounter";
 export { default as OpenEnded } from "./OpenEnded";
