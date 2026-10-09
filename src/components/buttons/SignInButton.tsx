@@ -2,60 +2,66 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { signIn } from "next-auth/react";
 import { LogIn } from "lucide-react";
 
 type SignInButtonProps = {
-  text?: string;
+  label?: string;
 };
 
-const SignInButton = ({ text }: SignInButtonProps) => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+const SignInButton = ({ label }: SignInButtonProps) => {
+  const { toast } = useToast();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const signInWithGoogle = async () => {
-    setIsLoading(true);
+  const handleGoogleSignIn = async () => {
+    if (isSigningIn) return;
+    setIsSigningIn(true);
 
     try {
       await signIn("google");
-    } catch (error) {
-      // toast notification
+    } catch {
+      setIsSigningIn(false);
+
       toast({
         title: "There was a problem",
         description: "An error occurred while logging in with Google",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return text ? (
-    <Button
-      size='lg'
-      onClick={signInWithGoogle}
-      isLoading={isLoading}
-      className='text-lg w-fit'
-    >
-      {text}
-    </Button>
-  ) : (
+  if (label) {
+    return (
+      <Button
+        size="lg"
+        onClick={handleGoogleSignIn}
+        isLoading={isSigningIn}
+        className="text-lg w-fit"
+      >
+        {label}
+      </Button>
+    );
+  }
+
+  return (
     <>
       <Button
-        className='hidden md:flex text-base h-10'
-        onClick={signInWithGoogle}
-        isLoading={isLoading}
+        className="hidden md:flex text-base h-10"
+        onClick={handleGoogleSignIn}
+        isLoading={isSigningIn}
       >
         Sign In
       </Button>
 
       <Button
-        className='flex md:hidden h-10'
-        onClick={signInWithGoogle}
-        size='sm'
-        variant='ghost'
+        size="sm"
+        variant="ghost"
+        className="flex md:hidden h-10"
+        onClick={handleGoogleSignIn}
+        isLoading={isSigningIn}
       >
-        <LogIn className='hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100' />
+        <LogIn className="hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100" />
       </Button>
     </>
   );
