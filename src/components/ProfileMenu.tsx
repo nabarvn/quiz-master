@@ -22,7 +22,7 @@ type ProfileMenuProps = {
 const ProfileMenu = ({ user }: ProfileMenuProps) => {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger className="inline-flex h-10 w-10 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
         <UserAvatar
           user={{
             name: user?.name || null,
@@ -50,6 +50,7 @@ const ProfileMenu = ({ user }: ProfileMenuProps) => {
           <Link
             href="https://git.new/quiz"
             target="_blank"
+            rel="noopener"
             className="cursor-pointer"
           >
             Star on Github 🌟
