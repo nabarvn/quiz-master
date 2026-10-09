@@ -2,19 +2,18 @@
 
 import axios from "axios";
 import { useTransition } from "react";
-import { Game } from "@prisma/client";
 import { Button } from "@/components/ui";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Trash2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { GameActionRequest } from "@/lib/validators/game-action";
+import { GameActionRequest } from "@/lib/validators/game";
 
 type DeleteGameButtonProps = {
-  game: Game;
+  gameId: string;
 };
 
-const DeleteGameButton = ({ game }: DeleteGameButtonProps) => {
+const DeleteGameButton = ({ gameId }: DeleteGameButtonProps) => {
   const router = useRouter();
   const { toast } = useToast();
   const [isRefreshing, startTransition] = useTransition();
@@ -22,10 +21,10 @@ const DeleteGameButton = ({ game }: DeleteGameButtonProps) => {
   const { mutate: deleteGame, isLoading: isDeleting } = useMutation({
     mutationFn: async () => {
       const payload: GameActionRequest = {
-        gameId: game.id,
+        gameId,
       };
 
-      const response = await axios.post(`/api/deleteGame`, payload);
+      const response = await axios.post(`/api/delete-game`, payload);
 
       return response.data;
     },
@@ -51,15 +50,17 @@ const DeleteGameButton = ({ game }: DeleteGameButtonProps) => {
     },
   });
 
+  const isBusy = isDeleting || isRefreshing;
+
   return (
     <Button
       size="sm"
       variant="ghost"
       onClick={() => deleteGame()}
-      disabled={isDeleting || isRefreshing}
+      disabled={isBusy}
       className="rounded-lg self-end"
     >
-      {isDeleting || isRefreshing ? (
+      {isBusy ? (
         <Loader2 className="w-3 md:w-4 h-3 md:h-4 animate-spin" />
       ) : (
         <Trash2 className="w-3 md:w-4 h-3 md:h-4 shrink-0" />
