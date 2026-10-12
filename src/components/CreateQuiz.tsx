@@ -12,9 +12,16 @@ import {
 } from "@/components/ui/Card";
 
 import {
-  QuizConstructorInput,
-  QuizConstructorValidator,
+  QUESTION_COUNT,
+  QuizRequest,
+  quizRequestSchema,
 } from "@/lib/validators/quiz";
+
+import {
+  QUIZ_GENERATION_ERROR_CODE,
+  QUIZ_GENERATION_ERROR_MESSAGE,
+  QUIZ_GENERATION_ERROR_STATUS,
+} from "@/lib/quiz-error";
 
 import {
   Form,
@@ -26,60 +33,95 @@ import {
   FormMessage,
 } from "@/components/ui/Form";
 
-import { useTransition } from "react";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, CopyCheck } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
+import { useEffect, useState, useTransition } from "react";
 
 type CreateQuizProps = {
   topicParam: string;
 };
 
+const LOADING_MESSAGES = [
+  "Generating questions...",
+  "Still working...",
+  "Hang tight...",
+] as const;
+
+const LOADING_MESSAGE_INTERVAL_MS = 10_000;
+
 const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
   const router = useRouter();
   const { toast } = useToast();
-  const [isFetching, startTransition] = useTransition();
+  const [isNavigating, startTransition] = useTransition();
 
-  const { mutate: getQuestions, isLoading } = useMutation({
-    mutationFn: async ({ topic, type, amount }: QuizConstructorInput) => {
-      const response = await axios.post("/api/startGame", {
+  const { mutate: startGame, isLoading } = useMutation({
+    mutationFn: async ({ topic, gameType, questionCount }: QuizRequest) => {
+      const response = await axios.post("/api/start-game", {
         topic: topic.toLowerCase(),
-        type,
-        amount,
+        gameType,
+        questionCount,
       });
+
       return response.data;
     },
   });
 
-  const form = useForm<QuizConstructorInput>({
-    resolver: zodResolver(QuizConstructorValidator),
+  const isStarting = isLoading || isNavigating;
+
+  const [loadingStep, setLoadingStep] = useState(0);
+
+  useEffect(() => {
+    if (!isLoading) return;
+
+    setLoadingStep(0);
+
+    const interval = setInterval(() => {
+      setLoadingStep((step) => Math.min(step + 1, LOADING_MESSAGES.length - 1));
+    }, LOADING_MESSAGE_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+  const form = useForm<QuizRequest>({
+    resolver: zodResolver(quizRequestSchema),
     defaultValues: {
       topic: topicParam,
-      type: "mcq",
-      amount: 3,
+      gameType: "mcq",
+      questionCount: QUESTION_COUNT.min,
     },
   });
 
-  const onSubmit = async (data: QuizConstructorInput) => {
-    getQuestions(data, {
+  const onSubmit = async (data: QuizRequest) => {
+    startGame(data, {
       onError: (error) => {
-        if (error instanceof AxiosError) {
-          if (error.response?.status === 500) {
-            toast({
-              title: "Error",
-              description: "Something went wrong, please try again later.",
-              variant: "destructive",
-            });
-          }
+        if (
+          axios.isAxiosError<{ code?: string }>(error) &&
+          error.response?.status === QUIZ_GENERATION_ERROR_STATUS &&
+          error.response.data?.code === QUIZ_GENERATION_ERROR_CODE
+        ) {
+          toast({
+            title: "Quiz not ready",
+            description: QUIZ_GENERATION_ERROR_MESSAGE,
+            variant: "destructive",
+          });
+
+          return;
         }
+
+        toast({
+          title: "Error",
+          description: "Something went wrong, please try again later.",
+          variant: "destructive",
+        });
       },
       onSuccess: ({ gameId }: { gameId: string }) => {
         startTransition(() => {
-          if (form.getValues("type") === "mcq") {
+          if (form.getValues("gameType") === "mcq") {
             router.push(`/play/mcq/${gameId}`);
-          } else if (form.getValues("type") === "open_ended") {
+          } else if (form.getValues("gameType") === "open_ended") {
             router.push(`/play/open-ended/${gameId}`);
           }
         });
@@ -107,7 +149,7 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
                 <FormField
                   name="topic"
                   control={form.control}
-                  disabled={isLoading || isFetching}
+                  disabled={isStarting}
                   render={({ field }) => (
                     <FormItem className="relative lg:w-1/2">
                       <FormLabel>Topic</FormLabel>
@@ -130,9 +172,9 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
                 />
 
                 <FormField
-                  name="amount"
+                  name="questionCount"
                   control={form.control}
-                  disabled={isLoading || isFetching}
+                  disabled={isStarting}
                   render={({ field }) => (
                     <FormItem className="relative lg:w-5/12">
                       <FormLabel>Number of Questions</FormLabel>
@@ -143,10 +185,13 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
                           type="number"
                           placeholder="How many questions?"
                           className="text-base"
-                          min={1}
-                          max={10}
+                          min={QUESTION_COUNT.min}
+                          max={QUESTION_COUNT.max}
                           onChange={(e) => {
-                            form.setValue("amount", parseInt(e.target.value));
+                            form.setValue(
+                              "questionCount",
+                              parseInt(e.target.value),
+                            );
                           }}
                         />
                       </FormControl>
@@ -166,12 +211,14 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
                   <Button
                     size="icon"
                     type="button"
-                    disabled={isLoading || isFetching}
+                    disabled={isStarting}
                     variant={
-                      form.getValues("type") === "mcq" ? "default" : "secondary"
+                      form.getValues("gameType") === "mcq"
+                        ? "default"
+                        : "secondary"
                     }
                     onClick={() => {
-                      form.setValue("type", "mcq");
+                      form.setValue("gameType", "mcq");
                     }}
                     className="w-1/2 rounded-none rounded-l-lg text-xs md:text-sm"
                   >
@@ -183,13 +230,13 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
                   <Button
                     size="icon"
                     type="button"
-                    disabled={isLoading || isFetching}
+                    disabled={isStarting}
                     variant={
-                      form.getValues("type") === "open_ended"
+                      form.getValues("gameType") === "open_ended"
                         ? "default"
                         : "secondary"
                     }
-                    onClick={() => form.setValue("type", "open_ended")}
+                    onClick={() => form.setValue("gameType", "open_ended")}
                     className="w-1/2 rounded-none rounded-r-lg text-xs md:text-sm"
                   >
                     <BookOpen className="w-4 h-4 mr-2" /> Open-Ended
@@ -203,11 +250,11 @@ const CreateQuiz = ({ topicParam }: CreateQuizProps) => {
 
               <Button
                 type="submit"
-                disabled={isLoading || isFetching}
-                isLoading={isLoading || isFetching}
+                disabled={isStarting}
+                isLoading={isStarting}
                 className="text-xs md:text-sm"
               >
-                Submit
+                {isStarting ? LOADING_MESSAGES[loadingStep] : "Submit"}
               </Button>
             </form>
           </Form>
