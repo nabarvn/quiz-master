@@ -1,13 +1,16 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { differenceInSeconds } from "date-fns";
 import { Game, Question } from "@prisma/client";
-import keyword_extractor from "keyword-extractor";
-import { cn, formatTimeDelta } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/Button";
+
+import { createCloze } from "@/lib/cloze";
+import { cn, formatTimeDelta } from "@/lib/utils";
 
 import {
   BarChart,
+  Check,
   ChevronRight,
   Loader2,
   Percent,
@@ -23,101 +26,167 @@ import {
 } from "@/components/ui/Card";
 
 import axios from "axios";
-import Link from "next/link";
+import { LatchLink } from "@/components";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { useHydrated } from "react-hydration-provider";
+
+import {
+  firstUnansweredIndex,
+  isAttemptFinished,
+  markAttemptEnded,
+  useActiveGame,
+} from "@/hooks/use-active-game";
+
 import { CheckAnswerRequest } from "@/lib/validators/answer";
-import { GameActionRequest } from "@/lib/validators/game-action";
+import { GameCompletionRequest } from "@/lib/validators/game";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 type OpenEndedProps = {
-  game: Game & { questions: Pick<Question, "id" | "question" | "answer">[] };
+  game: Game & {
+    questions: Pick<
+      Question,
+      "id" | "stem" | "correctAnswer" | "answeredAt" | "similarity"
+    >[];
+  };
 };
 
 const OpenEnded = ({ game }: OpenEndedProps) => {
-  const [hasEnded, setHasEnded] = useState<boolean>(false);
-  const [questionIndex, setQuestionIndex] = useState<number>(0);
-  const [blankAnswer, setBlankAnswer] = useState<string>("");
-  const [averagePercentage, setAveragePercentage] = useState<number>(0);
+  const [questionIndex, setQuestionIndex] = useState(() =>
+    firstUnansweredIndex(game.questions),
+  );
 
+  const [hasEndedLocally, setHasEndedLocally] = useState(() =>
+    isAttemptFinished(game.questions),
+  );
+
+  const [averageSimilarity, setAverageSimilarity] = useState(() => {
+    const answered = game.questions.filter(
+      (question) => question.similarity !== null,
+    );
+
+    if (answered.length === 0) return 0;
+
+    return (
+      answered.reduce(
+        (total, question) => total + (question.similarity ?? 0),
+        0,
+      ) / answered.length
+    );
+  });
+
+  const router = useRouter();
   const { toast } = useToast();
-  const hydrated = useHydrated();
+
+  const { hydrated, isBlockedInAnotherTab, hasEndedInTab, endedAt } =
+    useActiveGame(game.id, game.questions);
+
+  const hasEnded = hasEndedLocally || hasEndedInTab;
   const [timeNow, setTimeNow] = useState<Date>(new Date());
+  const [stoppedAt, setStoppedAt] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (hasEnded || stoppedAt) return;
+
+    const interval = setInterval(() => {
+      setTimeNow(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hasEnded, stoppedAt]);
 
   const currentQuestion = useMemo(() => {
     return game.questions[questionIndex];
   }, [questionIndex, game.questions]);
 
-  const { mutate: endGame } = useMutation({
-    mutationFn: async () => {
-      const payload: GameActionRequest = {
-        gameId: game.id,
-      };
+  const cloze = useMemo(
+    () => createCloze(currentQuestion.correctAnswer, currentQuestion.id),
+    [currentQuestion.correctAnswer, currentQuestion.id],
+  );
 
-      const response = await axios.post(`/api/endGame`, payload);
+  const [blankAnswers, setBlankAnswers] = useState<string[]>([]);
 
-      return response.data;
-    },
-  });
+  useEffect(() => {
+    setBlankAnswers(Array(cloze.expectedAnswers.length).fill(""));
+  }, [cloze.expectedAnswers.length, currentQuestion.id]);
 
   const { mutate: checkAnswer, isLoading: isChecking } = useMutation({
     mutationFn: async () => {
-      let filledAnswer = blankAnswer;
-
-      document.querySelectorAll("#user-blank-input").forEach((input) => {
-        if (input instanceof HTMLInputElement) {
-          filledAnswer = !input.value
-            ? filledAnswer.replace("_____", "[unanswered]")
-            : filledAnswer.replace("_____", input.value);
-
-          input.value = "";
-        }
-      });
-
       const payload: CheckAnswerRequest = {
+        blankAnswers,
         questionId: currentQuestion.id,
-        userInput: filledAnswer,
       };
 
-      const response = await axios.post(`/api/checkAnswer`, payload);
+      const response = await axios.post(`/api/check-answer`, payload);
 
       return response.data;
     },
   });
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!hasEnded) {
-        setTimeNow(new Date());
-      }
-    }, 1000);
+  const { mutateAsync: endGame, isLoading: isEnding } = useMutation({
+    mutationFn: async (timeEnded: Date) => {
+      const payload: GameCompletionRequest = {
+        gameId: game.id,
+        timeEnded,
+      };
 
-    return () => clearInterval(interval);
-  }, [hasEnded]);
+      const response = await axios.post(`/api/end-game`, payload);
+
+      return response.data;
+    },
+  });
 
   const handleNext = useCallback(() => {
+    if (isChecking || isEnding) return;
+
+    const submittedAt =
+      questionIndex === game.questions.length - 1 ? new Date() : null;
+
+    if (submittedAt) setStoppedAt(submittedAt);
+
     checkAnswer(undefined, {
-      onSuccess: ({ percentageSimilar }) => {
-        toast({
-          title: "Similarity Check",
-          description: `Your answer is ${percentageSimilar}% similar to the correct answer.`,
-          variant: "default",
+      onSuccess: async ({ similarity }: { similarity: number | null }) => {
+        if (similarity !== null) {
+          toast({
+            title: "Similarity Check",
+            description: `Your answer is ${similarity}% similar to the correct answer.`,
+            variant: "default",
+          });
+        }
+
+        setAverageSimilarity((prev) => {
+          return (
+            (prev * questionIndex + (similarity ?? 0)) / (questionIndex + 1)
+          );
         });
 
-        setAveragePercentage((prev) => {
-          return (prev + percentageSimilar) / (questionIndex + 1);
-        });
+        if (submittedAt) {
+          try {
+            await endGame(submittedAt);
+            markAttemptEnded(game.id, submittedAt);
+            setHasEndedLocally(true);
+          } catch {
+            setStoppedAt(null);
+            setTimeNow(new Date());
 
-        if (questionIndex === game.questions.length - 1) {
-          endGame();
-          setHasEnded(true);
+            toast({
+              title: "Could not finish the quiz",
+              description: "Please try again.",
+              variant: "destructive",
+            });
+          }
+
           return;
         }
 
         setQuestionIndex((prev) => prev + 1);
+        router.refresh();
       },
       onError: (error) => {
+        if (submittedAt) {
+          setStoppedAt(null);
+          setTimeNow(new Date());
+        }
+
         console.error(error);
 
         toast({
@@ -127,17 +196,27 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
         });
       },
     });
-  }, [checkAnswer, questionIndex, toast, endGame, game.questions.length]);
+  }, [
+    checkAnswer,
+    endGame,
+    game.id,
+    game.questions.length,
+    isChecking,
+    isEnding,
+    questionIndex,
+    router,
+    toast,
+  ]);
+
+  const isLocked = isChecking || isEnding || hasEnded;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (hasEnded) return;
-
+      if (isLocked) return;
       const key = event.key;
 
       if (key === "Enter") {
-        game.timeEnded.toUTCString() === game.timeStarted.toUTCString() &&
-          handleNext();
+        handleNext();
       }
     };
 
@@ -146,52 +225,33 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [game.timeEnded, game.timeStarted, handleNext, hasEnded]);
+  }, [handleNext, isLocked]);
 
-  const blank = "_____";
+  const isLastQuestion = questionIndex === game.questions.length - 1;
 
-  const keywords = useMemo(() => {
-    const words = keyword_extractor.extract(currentQuestion?.answer, {
-      language: "english",
-      remove_digits: true,
-      return_changed_case: false,
-      remove_duplicates: false,
-    });
-
-    // mix the keywords and pick 2
-    const shuffled = words.sort(() => 0.5 - Math.random());
-
-    return shuffled.slice(0, 2);
-  }, [currentQuestion?.answer]);
-
-  const answerWithBlanks = useMemo(() => {
-    const answerWithBlanks = keywords.reduce((acc, curr) => {
-      return acc.replaceAll(curr, blank);
-    }, currentQuestion?.answer);
-
-    setBlankAnswer(answerWithBlanks);
-
-    return answerWithBlanks;
-  }, [currentQuestion?.answer, keywords, setBlankAnswer]);
+  const elapsed = formatTimeDelta(
+    differenceInSeconds(endedAt ?? stoppedAt ?? timeNow, game.timeStarted),
+  );
 
   if (hasEnded) {
     return (
-      <div className="absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 -mt-20">
+      <div className="mx-auto flex h-full min-h-full w-fit flex-col justify-center">
         <div className="font-semibold text-white bg-green-700 rounded-md whitespace-nowrap px-4 py-2 mt-2">
-          You Completed in{" "}
-          {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
+          You Completed in {elapsed}
         </div>
 
-        <Link
+        <LatchLink
           href={`/statistics/${game.id}`}
           className={cn(buttonVariants({ size: "lg" }), "mt-2")}
         >
           View Statistics
           <BarChart className="w-4 h-4 ml-2" />
-        </Link>
+        </LatchLink>
       </div>
     );
   }
+
+  if (hydrated && isBlockedInAnotherTab) return null;
 
   return (
     hydrated && (
@@ -209,12 +269,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
 
             <div className="flex self-start text-slate-400 mt-3">
               <Timer className="mr-2" />
-
-              {game.timeEnded.toUTCString() === game.timeStarted.toUTCString()
-                ? formatTimeDelta(
-                    differenceInSeconds(timeNow, game.timeStarted)
-                  )
-                : "Game Over"}
+              {elapsed}
             </div>
           </div>
 
@@ -222,7 +277,7 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
             <Target size={30} />
 
             <span className="text-2xl opacity-75 ml-3">
-              {averagePercentage.toFixed(2)}
+              {averageSimilarity.toFixed(2)}
             </span>
 
             <Percent size={25} />
@@ -230,34 +285,45 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
         </div>
 
         <Card className="w-full text-slate-700 dark:text-slate-300 mt-4">
-          <CardHeader className="flex flex-row items-center">
+          <CardHeader className="flex flex-row items-center space-y-0">
             <CardTitle className="text-center divide-y divide-slate-900 dark:divide-slate-300 mr-5">
               <div>{questionIndex + 1}</div>
               <div className="text-base">{game.questions.length}</div>
             </CardTitle>
 
             <CardDescription className="flex-grow text-lg text-slate-700 dark:text-slate-300">
-              {currentQuestion?.question}
+              {currentQuestion?.stem}
             </CardDescription>
           </CardHeader>
         </Card>
 
         <div className="flex flex-col items-center justify-center w-full mt-4">
-          <div className="flex justify-start w-full mt-4">
+          <div
+            key={currentQuestion.id}
+            className="flex justify-start w-full mt-4"
+          >
             <h1 className="text-xl font-semibold">
-              {/* replace the blanks with input elements */}
-              {answerWithBlanks?.split(blank).map((part, index) => {
+              {cloze.parts.map((part, index) => {
                 return (
                   <Fragment key={index}>
                     {part}
 
-                    {index === answerWithBlanks.split(blank).length - 1 ? (
+                    {index === cloze.parts.length - 1 ? (
                       ""
                     ) : (
                       <input
-                        id="user-blank-input"
-                        disabled={isChecking}
-                        className="text-center border-b-2 border-black dark:border-white w-28 focus:border-2 focus:border-b-4 focus:outline-none"
+                        disabled={isLocked}
+                        value={blankAnswers[index] ?? ""}
+                        onChange={(event) => {
+                          setBlankAnswers((answers) =>
+                            answers.map((answer, answerIndex) =>
+                              answerIndex === index
+                                ? event.target.value
+                                : answer,
+                            ),
+                          );
+                        }}
+                        className="text-center border-b-2 border-black dark:border-white w-28 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                         type="text"
                       />
                     )}
@@ -271,17 +337,20 @@ const OpenEnded = ({ game }: OpenEndedProps) => {
             size="default"
             variant="default"
             className="mt-4"
-            disabled={
-              isChecking ||
-              hasEnded ||
-              game.timeEnded.toUTCString() !== game.timeStarted.toUTCString()
-            }
+            disabled={isLocked}
             onClick={() => {
               handleNext();
             }}
           >
-            {isChecking && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Next <ChevronRight className="w-4 h-4 ml-2" />
+            {(isChecking || isEnding) && (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            )}
+            {isLastQuestion ? "Finish" : "Next"}
+            {isLastQuestion ? (
+              <Check className="w-4 h-4 ml-2" />
+            ) : (
+              <ChevronRight className="w-4 h-4 ml-2" />
+            )}
           </Button>
         </div>
       </div>
