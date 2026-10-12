@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { differenceInSeconds } from "date-fns";
 import { Game, Question } from "@prisma/client";
 import { cn, formatTimeDelta } from "@/lib/utils";
@@ -13,41 +13,75 @@ import {
   CardTitle,
 } from "@/components/ui/Card";
 
-import { MCQCounter } from "@/components";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { useHydrated } from "react-hydration-provider";
+import { LatchLink, MCQCounter } from "@/components";
+
+import {
+  firstUnansweredIndex,
+  isAttemptFinished,
+  markAttemptEnded,
+  useActiveGame,
+} from "@/hooks/use-active-game";
+
 import { CheckAnswerRequest } from "@/lib/validators/answer";
+import { GameCompletionRequest } from "@/lib/validators/game";
 import { Button, buttonVariants } from "@/components/ui/Button";
-import { GameActionRequest } from "@/lib/validators/game-action";
-import { BarChart, ChevronRight, Loader2, Timer } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BarChart, Check, ChevronRight, Loader2, Timer } from "lucide-react";
 
 type MCQProps = {
   game: Game & {
-    questions: Pick<Question, "id" | "question" | "options">[];
+    questions: Pick<
+      Question,
+      "id" | "stem" | "options" | "answeredAt" | "isCorrect"
+    >[];
   };
 };
 
-type StatsProps = {
+type McqStats = {
   correctAnswers: number;
   wrongAnswers: number;
 };
 
 const MCQ = ({ game }: MCQProps) => {
-  const [questionIndex, setQuestionIndex] = useState<number>(0);
-  const [hasEnded, setHasEnded] = useState<boolean>(false);
+  const [questionIndex, setQuestionIndex] = useState(() =>
+    firstUnansweredIndex(game.questions),
+  );
 
-  const [stats, setStats] = useState<StatsProps>({
-    correctAnswers: 0,
-    wrongAnswers: 0,
-  });
+  const [hasEndedLocally, setHasEndedLocally] = useState(() =>
+    isAttemptFinished(game.questions),
+  );
 
+  const [stats, setStats] = useState<McqStats>(() => ({
+    correctAnswers: game.questions.filter(
+      (question) => question.isCorrect === true,
+    ).length,
+    wrongAnswers: game.questions.filter(
+      (question) => question.isCorrect === false,
+    ).length,
+  }));
+
+  const router = useRouter();
   const { toast } = useToast();
-  const hydrated = useHydrated();
+
+  const { hydrated, isBlockedInAnotherTab, hasEndedInTab, endedAt } =
+    useActiveGame(game.id, game.questions);
+
+  const hasEnded = hasEndedLocally || hasEndedInTab;
+
   const [timeNow, setTimeNow] = useState<Date>(new Date());
-  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [selectedChoice, setSelectedChoice] = useState<number>(-1);
+  const [stoppedAt, setStoppedAt] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (hasEnded || stoppedAt) return;
+
+    const interval = setInterval(() => {
+      setTimeNow(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hasEnded, stoppedAt]);
 
   const currentQuestion = useMemo(() => {
     return game.questions[questionIndex];
@@ -55,15 +89,12 @@ const MCQ = ({ game }: MCQProps) => {
 
   const options = useMemo(() => {
     if (!currentQuestion) return [];
-
     if (!currentQuestion.options) return [];
 
     return JSON.parse(currentQuestion.options as string) as string[];
   }, [currentQuestion]);
 
-  const allConciseOptions = options.every(
-    (option) => option.split(" ").length < 7
-  );
+  const [selectedChoice, setSelectedChoice] = useState<number>(-1);
 
   const { mutate: checkAnswer, isLoading: isChecking } = useMutation({
     mutationFn: async () => {
@@ -79,46 +110,53 @@ const MCQ = ({ game }: MCQProps) => {
 
       const payload: CheckAnswerRequest = {
         questionId: currentQuestion.id,
-        userInput: options[selectedChoice],
+        userAnswer: options[selectedChoice],
       };
 
-      const response = await axios.post(`/api/checkAnswer`, payload);
+      const response = await axios.post(`/api/check-answer`, payload);
 
       return response.data;
     },
   });
 
-  const { mutate: endGame } = useMutation({
-    mutationFn: async () => {
-      const payload: GameActionRequest = {
+  const { mutateAsync: endGame, isLoading: isEnding } = useMutation({
+    mutationFn: async (timeEnded: Date) => {
+      const payload: GameCompletionRequest = {
         gameId: game.id,
+        timeEnded,
       };
 
-      const response = await axios.post(`/api/endGame`, payload);
+      const response = await axios.post(`/api/end-game`, payload);
 
       return response.data;
     },
   });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!hasEnded) {
-        setTimeNow(new Date());
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [hasEnded]);
 
   const handleNext = useCallback(() => {
+    if (isChecking || isEnding) return;
+
+    const submittedAt =
+      questionIndex === game.questions.length - 1 && selectedChoice !== -1
+        ? new Date()
+        : null;
+
+    if (submittedAt) setStoppedAt(submittedAt);
+
     checkAnswer(undefined, {
-      onSuccess: ({ isCorrect }: { isCorrect: boolean | null }) => {
-        if (isCorrect === null) return;
+      onSuccess: async ({ isCorrect }: { isCorrect: boolean | null }) => {
+        if (isCorrect === null) {
+          if (submittedAt) {
+            setStoppedAt(null);
+            setTimeNow(new Date());
+          }
+
+          return;
+        }
 
         if (isCorrect) {
-          setStats((stats) => ({
-            ...stats,
-            correctAnswers: stats.correctAnswers + 1,
+          setStats((prev) => ({
+            ...prev,
+            correctAnswers: prev.correctAnswers + 1,
           }));
 
           toast({
@@ -127,9 +165,9 @@ const MCQ = ({ game }: MCQProps) => {
             variant: "success",
           });
         } else {
-          setStats((stats) => ({
-            ...stats,
-            wrongAnswers: stats.wrongAnswers + 1,
+          setStats((prev) => ({
+            ...prev,
+            wrongAnswers: prev.wrongAnswers + 1,
           }));
 
           toast({
@@ -139,43 +177,77 @@ const MCQ = ({ game }: MCQProps) => {
           });
         }
 
-        if (questionIndex === game.questions.length - 1) {
-          endGame();
-          setHasEnded(true);
+        if (submittedAt) {
+          try {
+            await endGame(submittedAt);
+            markAttemptEnded(game.id, submittedAt);
+            setHasEndedLocally(true);
+          } catch {
+            setStoppedAt(null);
+            setTimeNow(new Date());
+
+            toast({
+              title: "Could not finish the quiz",
+              description: "Please try again.",
+              variant: "destructive",
+            });
+          }
+
           return;
         }
 
-        setQuestionIndex((questionIndex) => questionIndex + 1);
+        setQuestionIndex((prev) => prev + 1);
         setSelectedChoice(-1);
+        router.refresh();
+      },
+      onError: () => {
+        if (submittedAt) {
+          setStoppedAt(null);
+          setTimeNow(new Date());
+        }
+
+        toast({
+          title: "Something went wrong",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
       },
     });
-  }, [checkAnswer, questionIndex, game.questions.length, toast, endGame]);
+  }, [
+    checkAnswer,
+    endGame,
+    game.id,
+    game.questions.length,
+    isChecking,
+    isEnding,
+    questionIndex,
+    router,
+    selectedChoice,
+    toast,
+  ]);
+
+  const isLocked = isChecking || isEnding || hasEnded;
+
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (hasEnded) return;
-
+      if (isLocked) return;
       const key = event.key;
 
-      if (key === "1") {
-        setSelectedChoice(0);
-        buttonFocus(0);
-      } else if (key === "2") {
-        setSelectedChoice(1);
-        buttonFocus(1);
-      } else if (key === "3") {
-        setSelectedChoice(2);
-        buttonFocus(2);
-      } else if (key === "4") {
-        setSelectedChoice(3);
-        buttonFocus(3);
-      } else if (key === "Enter") {
-        if (buttonRefs) {
-          buttonRefs.current.some((buttonRef) => buttonRef?.blur());
-        }
+      if (key >= "1" && key <= "4") {
+        const index = Number(key) - 1;
+        const button = buttonRefs.current[index];
 
-        game.timeEnded.toUTCString() === game.timeStarted.toUTCString() &&
-          handleNext();
+        if (!button || button.disabled) return;
+
+        setSelectedChoice(index);
+        button.focus();
+      } else if (key === "Enter") {
+        if (!nextButtonRef.current || nextButtonRef.current.disabled) return;
+        buttonRefs.current.forEach((button) => button?.blur());
+        handleNext();
       }
     };
 
@@ -184,34 +256,34 @@ const MCQ = ({ game }: MCQProps) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [game.timeEnded, game.timeStarted, handleNext, hasEnded]);
+  }, [handleNext, isLocked]);
 
-  const buttonFocus = (index: number) => {
-    const buttonRef = buttonRefs.current[index];
+  const isLastQuestion = questionIndex === game.questions.length - 1;
 
-    if (buttonRef) {
-      buttonRef.focus();
-    }
-  };
+  const elapsed = formatTimeDelta(
+    differenceInSeconds(endedAt ?? stoppedAt ?? timeNow, game.timeStarted),
+  );
 
   if (hasEnded) {
     return (
-      <div className="absolute flex flex-col justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 -mt-20">
+      <div className="mx-auto flex h-full min-h-full w-fit flex-col justify-center">
         <div className="font-semibold text-white bg-green-500 rounded-md whitespace-nowrap px-4 py-2 mt-2">
           You Completed in&nbsp;
-          {formatTimeDelta(differenceInSeconds(timeNow, game.timeStarted))}
+          {elapsed}
         </div>
 
-        <Link
+        <LatchLink
           href={`/statistics/${game.id}`}
           className={cn(buttonVariants({ size: "lg" }), "mt-2")}
         >
           View Statistics
           <BarChart className="w-4 h-4 ml-2" />
-        </Link>
+        </LatchLink>
       </div>
     );
   }
+
+  if (hydrated && isBlockedInAnotherTab) return null;
 
   return (
     hydrated && (
@@ -229,12 +301,7 @@ const MCQ = ({ game }: MCQProps) => {
 
             <div className="flex self-start text-slate-400 mt-3">
               <Timer className="mr-2" />
-
-              {game.timeEnded.toUTCString() === game.timeStarted.toUTCString()
-                ? formatTimeDelta(
-                    differenceInSeconds(timeNow, game.timeStarted)
-                  )
-                : "Game Over"}
+              {elapsed}
             </div>
           </div>
 
@@ -245,14 +312,14 @@ const MCQ = ({ game }: MCQProps) => {
         </div>
 
         <Card className="w-full text-slate-700 dark:text-slate-300 mt-4">
-          <CardHeader className="flex flex-row items-center">
+          <CardHeader className="flex flex-row items-center space-y-0">
             <CardTitle className="text-center divide-y divide-slate-900 dark:divide-slate-300 mr-5">
               <div>{questionIndex + 1}</div>
               <div className="text-base">{game.questions.length}</div>
             </CardTitle>
 
             <CardDescription className="flex-grow text-lg text-slate-700 dark:text-slate-300">
-              {currentQuestion?.question}
+              {currentQuestion?.stem}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -263,7 +330,7 @@ const MCQ = ({ game }: MCQProps) => {
               return (
                 <Button
                   key={index}
-                  disabled={isChecking}
+                  disabled={isLocked}
                   ref={(el) => (buttonRefs.current[index] = el)} // assign ref to each button
                   className="justify-start w-full border-slate-900 dark:border-slate-300 py-8"
                   onClick={() => setSelectedChoice(index)}
@@ -280,13 +347,7 @@ const MCQ = ({ game }: MCQProps) => {
                       {index + 1}
                     </div>
 
-                    <div
-                      className={cn("text-start", {
-                        "lg:self-start": !allConciseOptions,
-                      })}
-                    >
-                      {option}
-                    </div>
+                    <div className="text-start self-start">{option}</div>
                   </div>
                 </Button>
               );
@@ -294,22 +355,24 @@ const MCQ = ({ game }: MCQProps) => {
           </div>
 
           <Button
+            ref={nextButtonRef}
             size="default"
             variant="default"
             className="mt-4"
             onClick={() => {
               handleNext();
             }}
-            disabled={
-              isChecking ||
-              hasEnded ||
-              game.timeEnded.toUTCString() !== game.timeStarted.toUTCString()
-            }
+            disabled={isLocked}
           >
-            {isChecking && selectedChoice !== -1 && (
+            {(isChecking || isEnding) && selectedChoice !== -1 && (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             )}
-            Next <ChevronRight className="w-4 h-4 ml-2" />
+            {isLastQuestion ? "Finish" : "Next"}
+            {isLastQuestion ? (
+              <Check className="w-4 h-4 ml-2" />
+            ) : (
+              <ChevronRight className="w-4 h-4 ml-2" />
+            )}
           </Button>
         </div>
       </div>
