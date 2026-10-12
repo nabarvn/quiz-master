@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Game } from "@prisma/client";
+import { LatchLink } from "@/components";
 import { buttonVariants } from "@/components/ui/Button";
 import { DeleteGameButton } from "@/components/buttons";
 import { Clock, CopyCheck, BookOpen } from "lucide-react";
@@ -10,10 +10,11 @@ type HistoryProps = {
   getGames?: () => Promise<Game[]>;
 };
 
-const History = async ({ games = [], getGames }: HistoryProps) => {
-  if (getGames) {
-    games = await getGames();
-  }
+const History = async ({
+  games: initialGames = [],
+  getGames,
+}: HistoryProps) => {
+  const games = getGames ? await getGames() : initialGames;
 
   return (
     <div className="space-y-8 mt-5">
@@ -28,15 +29,15 @@ const History = async ({ games = [], getGames }: HistoryProps) => {
               )}
 
               <div className="space-y-1 ml-2 md:ml-4">
-                <Link
+                <LatchLink
                   href={`/statistics/${game.id}`}
                   className={cn(
                     buttonVariants({ variant: "link" }),
-                    "text-base underline leading-none h-fit px-0 py-1.5"
+                    "text-base underline leading-none h-fit px-0 py-1.5",
                   )}
                 >
                   {game.topic}
-                </Link>
+                </LatchLink>
 
                 <p className="text-xs md:text-sm text-muted-foreground">
                   {game.gameType === "mcq" ? "Multiple Choice" : "Open-Ended"}
@@ -50,7 +51,7 @@ const History = async ({ games = [], getGames }: HistoryProps) => {
                 {new Date(game.timeStarted ?? 0).toLocaleDateString()}
               </p>
 
-              <DeleteGameButton game={game} />
+              <DeleteGameButton gameId={game.id} />
             </div>
           </div>
         );
