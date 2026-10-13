@@ -1,8 +1,9 @@
-import { db } from "@/lib/db";
 import type { Metadata } from "next";
-import { getAuthSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Balancer from "react-wrap-balancer";
+
+import { db } from "@/lib/db";
+import { getAuthSession } from "@/lib/auth";
 
 import {
   AttemptHistory,
@@ -22,6 +23,24 @@ const DashboardPage = async () => {
     // user is not logged in
     return redirect("/");
   }
+
+  const getRecentGames = () =>
+    db.game.findMany({
+      take: 10,
+      where: {
+        userId: session.user.id,
+      },
+      orderBy: {
+        timeStarted: "desc",
+      },
+    });
+
+  const getTotalGameCount = () =>
+    db.game.count({
+      where: {
+        userId: session.user.id,
+      },
+    });
 
   return (
     <main className="mx-auto max-w-7xl p-8">
@@ -43,24 +62,8 @@ const DashboardPage = async () => {
         <HotTopics />
 
         <RecentActivity
-          getGames={async () => {
-            return await db.game.findMany({
-              take: 10,
-              where: {
-                userId: session.user.id,
-              },
-              orderBy: {
-                timeStarted: "desc",
-              },
-            });
-          }}
-          getGamesCount={async () => {
-            return await db.game.count({
-              where: {
-                userId: session.user.id,
-              },
-            });
-          }}
+          getRecentGames={getRecentGames}
+          getTotalGameCount={getTotalGameCount}
         />
       </div>
     </main>
