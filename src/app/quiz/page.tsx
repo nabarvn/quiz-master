@@ -22,7 +22,7 @@ const QuizPage = async ({ searchParams }: QuizPageProps) => {
   }
 
   return (
-    <main className='relative mx-auto min-h-screen max-w-7xl'>
+    <main className="relative mx-auto min-h-screen md:min-h-full max-w-7xl">
       <CreateQuiz topicParam={searchParams.topic ?? ""} />
     </main>
   );
