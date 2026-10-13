@@ -20,7 +20,7 @@ export default async function Home() {
         <div className="flex max-w-fit items-center justify-center rounded-full border border-slate-200 dark:border-slate-500 bg-white/75 dark:bg-slate-900 shadow-md backdrop-blur transition-all hover:border-slate-300 dark:hover:border-slate-700 px-5 py-1">
           <Link
             target="_blank"
-            referrerPolicy="no-referrer"
+            rel="noopener"
             href="https://git.new/quiz"
             className="text-xs font-semibold text-slate-900 dark:text-slate-100"
           >
@@ -43,7 +43,7 @@ export default async function Home() {
           </Balancer>
         </Paragraph>
 
-        <SignInButton text="Get Started" />
+        <SignInButton label="Get Started" />
       </div>
     </main>
   );
