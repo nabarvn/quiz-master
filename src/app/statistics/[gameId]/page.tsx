@@ -1,15 +1,17 @@
-import { db } from "@/lib/db";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getAuthSession } from "@/lib/auth";
 import { DashboardButton } from "@/components/buttons";
 
 import {
-  AccuracyCard,
+  MetricCard,
   DurationCard,
   QuestionsList,
   ResultsCard,
 } from "@/components/statistics";
+
+import { db } from "@/lib/db";
+import { getAuthSession } from "@/lib/auth";
+import { getQuizSummary } from "@/lib/quiz-statistics";
 
 export const metadata: Metadata = {
   title: "Statistics | Quiz Master",
@@ -28,36 +30,23 @@ const StatisticsPage = async ({ params: { gameId } }: StatisticsPageProps) => {
     return redirect("/");
   }
 
-  const game = await db.game.findUnique({
-    where: { id: gameId },
-    include: { questions: true },
+  const game = await db.game.findFirst({
+    where: {
+      id: gameId,
+      userId: session.user.id,
+    },
+    include: {
+      questions: {
+        orderBy: [{ position: "asc" }, { id: "asc" }],
+      },
+    },
   });
 
   if (!game) {
     return redirect("/quiz");
   }
 
-  let accuracy: number = 0;
-
-  if (game.gameType === "mcq") {
-    let totalCorrect = game.questions.reduce((acc, question) => {
-      if (question.isCorrect) {
-        return acc + 1;
-      }
-
-      return acc;
-    }, 0);
-
-    accuracy = (totalCorrect / game.questions.length) * 100;
-  } else if (game.gameType === "open_ended") {
-    let totalPercentage = game.questions.reduce((acc, question) => {
-      return acc + (question.percentageCorrect ?? 0);
-    }, 0);
-
-    accuracy = totalPercentage / game.questions.length;
-  }
-
-  accuracy = Math.round(accuracy * 100) / 100;
+  const summary = getQuizSummary(game);
 
   return (
     <main className="mx-auto max-w-7xl p-8">
@@ -70,17 +59,16 @@ const StatisticsPage = async ({ params: { gameId } }: StatisticsPageProps) => {
       </div>
 
       <div className="grid gap-4 mt-4 md:grid-cols-7">
-        <ResultsCard accuracy={accuracy} />
-
-        <AccuracyCard accuracy={accuracy} />
+        <ResultsCard summary={summary} />
+        <MetricCard summary={summary} />
 
         <DurationCard
-          timeEnded={new Date(game.timeEnded ?? 0)}
-          timeStarted={new Date(game.timeStarted ?? 0)}
+          durationEnd={summary.durationEnd}
+          startedAt={game.timeStarted}
         />
       </div>
 
-      <QuestionsList questions={game.questions} />
+      <QuestionsList gameType={game.gameType} questions={game.questions} />
     </main>
   );
 };
