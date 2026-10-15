@@ -29,6 +29,10 @@ export default withAuth(
     const token = await getToken({ req });
     const isAuthenticated = !!token;
 
+    if (isAuthenticated && pathname === "/") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
     const sensitiveRoutes = [
       "/dashboard",
       "/quiz",
@@ -53,11 +57,12 @@ export default withAuth(
         return true;
       },
     },
-  }
+  },
 );
 
 export const config = {
   matcher: [
+    "/",
     "/api/:path*",
     "/dashboard/:path*",
     "/quiz/:path*",
