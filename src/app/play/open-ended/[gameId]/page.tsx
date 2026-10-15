@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { Metadata } from "next";
-import { OpenEnded } from "@/components";
 import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth";
+import { isGameCompleted } from "@/lib/utils";
+import { LatchLink, OpenEnded } from "@/components";
 import { buttonVariants } from "@/components/ui/Button";
 
 import {
@@ -31,30 +31,31 @@ const OpenEndedQuizPage = async ({
 
   if (!session?.user) return redirect("/");
 
-  const game = await db.game.findUnique({
+  const game = await db.game.findFirst({
     where: {
       id: gameId,
+      userId: session.user.id,
     },
     include: {
       questions: {
+        orderBy: [{ position: "asc" }, { id: "asc" }],
         select: {
           id: true,
-          question: true,
-          answer: true,
+          stem: true,
+          correctAnswer: true,
+          answeredAt: true,
+          similarity: true,
         },
       },
     },
   });
 
-  if (
-    !game ||
-    game.timeEnded.toUTCString() !== game.timeStarted.toUTCString()
-  ) {
+  if (!game || isGameCompleted(game)) {
     return redirect("/quiz");
   }
 
   return (
-    <main className="relative mx-auto min-h-screen max-w-7xl">
+    <main className="relative mx-auto h-full max-w-7xl">
       {game.questions[0] ? (
         <OpenEnded game={game} />
       ) : (
@@ -68,9 +69,9 @@ const OpenEndedQuizPage = async ({
           </CardHeader>
 
           <CardContent>
-            <Link className={buttonVariants()} href="/quiz">
+            <LatchLink className={buttonVariants()} href="/quiz">
               Retry
-            </Link>
+            </LatchLink>
           </CardContent>
         </Card>
       )}
