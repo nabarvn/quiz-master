@@ -1,7 +1,6 @@
 # Quiz Master
 
-This innovative project harnesses the power of artificial intelligence (AI) to provide a dynamic and engaging quiz experience for users of all backgrounds and interests.
-<em>Discover, Learn, and Quiz like never before!</em>
+Quiz Master creates custom quizzes on any topic, making it easy to test your knowledge, learn something new, or challenge your friends. <em>Pick a topic, generate a quiz, and see how much you know.</em>
 
 ## Screenshot
 
@@ -13,7 +12,7 @@ This innovative project harnesses the power of artificial intelligence (AI) to p
 
 ## Running Locally
 
-This application requires Node.js v16.13+.
+This application requires Node.js v24+.
 
 ### Cloning the repository to the local machine:
 
